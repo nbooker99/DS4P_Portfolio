@@ -296,107 +296,131 @@ $(document).ready(function () {
 
 
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>My goal is to use my First Year Project data to make a bar graph
+(similar to one I made using SPSS for my FYP poster) to show the mean
+pre-test polarization scores of participants grouped by condition
+(control and deliberation) and party affiliation (Democrat or
+Republican). Once I make the graph, I will interpret it.</p>
 </blockquote>
+<p>Quite a bit of work in SPSS went into getting the data formatted the
+way I needed it to make a graph in R. After getting the data how I
+needed it within SPSS, I used the haven package to get the dataset into
+R. I use the str() function to show the structure of my data (see
+below). It may not look pretty, but it shows that I have a tibble with
+400 rows a 7 columns. It shows the 7 variables in my data set and shows
+the value labels for the variables that have them. Note: Because I’ll be
+making a graph with polarization as the DV, bias and target are
+irrelevant variables. This is because polarization scores were computed
+by taking the absolute value of the difference in attitudes (bias)
+towards Democrats and Republicans. So, a larger distance in attitudes
+(e.g., extremely postive towards one part and extremely negative towards
+the other party) produces a larger polarization score.</p>
 <pre class="r"><code>library(tidyverse) 
 library(tidyr)
 library(haven)
-partisan_bias &lt;- read_sav(&quot;p01/data/BIAS_DATA_LONG.sav&quot;)</code></pre>
-<p>Now, that I’ve imported the data, I’d like to get summary
-statistics.</p>
-<pre class="r"><code>summary_stats &lt;- partisan_bias %&gt;% 
-  group_by(delib, partyid, target, time) %&gt;% 
+partisan_bias &lt;- read_sav(&quot;p01/data/LongData.sav&quot;)
+str(partisan_bias)</code></pre>
+<pre><code>## tibble [400 × 7] (S3: tbl_df/tbl/data.frame)
+##  $ participant : num [1:400] 1 1 1 1 2 2 2 2 3 3 ...
+##   ..- attr(*, &quot;format.spss&quot;)= chr &quot;F1.0&quot;
+##   ..- attr(*, &quot;display_width&quot;)= int 13
+##  $ delib       : dbl+lbl [1:400] 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+##    ..@ format.spss  : chr &quot;F1.0&quot;
+##    ..@ display_width: int 7
+##    ..@ labels       : Named num [1:2] 0 1
+##    .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;control&quot; &quot;deliberation&quot;
+##  $ partyid     : dbl+lbl [1:400] 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, ...
+##    ..@ format.spss  : chr &quot;F1.0&quot;
+##    ..@ display_width: int 10
+##    ..@ labels       : Named num [1:2] 1 2
+##    .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;Democrats&quot; &quot;Republicans&quot;
+##  $ target      : dbl+lbl [1:400] 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, ...
+##    ..@ format.spss: chr &quot;F4.0&quot;
+##    ..@ labels     : Named num [1:2] 1 2
+##    .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;Democrat&quot; &quot;Republican&quot;
+##  $ time        : dbl+lbl [1:400] 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, ...
+##    ..@ format.spss: chr &quot;F4.0&quot;
+##    ..@ labels     : Named num [1:2] 1 2
+##    .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;pretest&quot; &quot; posttest&quot;
+##  $ bias        : num [1:400] 12 17 64.3 60 30 ...
+##   ..- attr(*, &quot;format.spss&quot;)= chr &quot;F8.2&quot;
+##   ..- attr(*, &quot;display_width&quot;)= int 11
+##  $ polarization: num [1:400] 52.3 42.9 52.3 42.9 33.1 ...
+##   ..- attr(*, &quot;format.spss&quot;)= chr &quot;F8.2&quot;
+##   ..- attr(*, &quot;display_width&quot;)= int 14</code></pre>
+<p>Because I know what I want my graph to look like, I know that the
+variables polarization, delib, partyid, and time will be important for
+making the graph. However, I also know that: (1) I only want pre-test
+scores; (2) that the graph won’t contain individual polarization scores,
+but will instead display mean polarization scores for four different
+groups (delib x partyid); and (3) that I want my graph to have standard
+error bars to visualize whether differences between groups are
+meaningful. Therefore, below I create a new data frame
+(pretest_pol_summary) which uses the data from my original dataset,
+filters it to contain only cases where time = 1, and contains the mean
+polarization scores and standard errors for participants grouped by
+condition (delib), party identification, and time (pre-test, post-test).
+The output shows the values that I want in my table (disregarding the
+ns).</p>
+<pre class="r"><code>pretest_pol_summary &lt;- partisan_bias %&gt;%
+  filter(time == 1) %&gt;%
+  group_by(delib, partyid) %&gt;% 
   summarise(
-    mean_bias = mean(bias, na.rm = TRUE),
-    sd_bias = sd(bias, na.rm = TRUE),
+    mean_pol = mean(polarization, na.rm = TRUE),
+    se_pol = sd(polarization, na.rm = TRUE) / sqrt(n()),
     n = n()
   )
 
-summary_stats</code></pre>
-<pre><code>## # A tibble: 16 × 7
-## # Groups:   delib, partyid, target [8]
-##    delib            partyid        target        time    mean_bias sd_bias     n
-##    &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;      &lt;dbl+lbl&gt;     &lt;dbl+l&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt;
-##  1 0 [control]      1 [Democrat]   1 [Democrat]  1 [pre…      32.1   14.0     18
-##  2 0 [control]      1 [Democrat]   1 [Democrat]  2 [ po…      29.9   15.5     18
-##  3 0 [control]      1 [Democrat]   2 [Republica… 1 [pre…      67.8   14.4     18
-##  4 0 [control]      1 [Democrat]   2 [Republica… 2 [ po…      67.2   14.3     18
-##  5 0 [control]      2 [Republican] 1 [Democrat]  1 [pre…      58.1   10.4     26
-##  6 0 [control]      2 [Republican] 1 [Democrat]  2 [ po…      57.6    9.49    26
-##  7 0 [control]      2 [Republican] 2 [Republica… 1 [pre…      34.2   11.9     26
-##  8 0 [control]      2 [Republican] 2 [Republica… 2 [ po…      35.6   11.2     26
-##  9 1 [deliberation] 1 [Democrat]   1 [Democrat]  1 [pre…      34.8   11.3     29
-## 10 1 [deliberation] 1 [Democrat]   1 [Democrat]  2 [ po…      27.3   11.5     29
-## 11 1 [deliberation] 1 [Democrat]   2 [Republica… 1 [pre…      58.8   11.6     29
-## 12 1 [deliberation] 1 [Democrat]   2 [Republica… 2 [ po…      55.0   12.9     29
-## 13 1 [deliberation] 2 [Republican] 1 [Democrat]  1 [pre…      53.6   10.1     27
-## 14 1 [deliberation] 2 [Republican] 1 [Democrat]  2 [ po…      50.9   12.5     27
-## 15 1 [deliberation] 2 [Republican] 2 [Republica… 1 [pre…      39.4   11.1     27
-## 16 1 [deliberation] 2 [Republican] 2 [Republica… 2 [ po…      35.2   10.3     27</code></pre>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum
-eget nibh vel est aliquet iaculis at placerat sem. Aenean faucibus
-iaculis ultricies. Nullam consequat odio in ultricies ullamcorper. Etiam
-venenatis in est vitae ullamcorper. Nam vitae urna ut dolor rhoncus
-aliquet at vel neque. Quisque tristique leo finibus nisi interdum, sit
-amet tempor risus viverra. Donec mollis vulputate sodales. Nunc ornare,
-leo quis euismod eleifend, eros mi maximus felis, vel varius lacus dui
-eget nibh. Duis vitae nunc nisl. Donec accumsan aliquam elit, eu
-fringilla quam pulvinar eget.</p>
-<p>Mauris in ligula mauris. Curabitur facilisis pharetra metus eget
-lobortis. In egestas nibh sit amet faucibus eleifend. Suspendisse
-imperdiet viverra blandit. Phasellus consectetur tincidunt eros eu
-facilisis. Quisque maximus, orci eget sodales aliquam, velit lorem
-semper dolor, nec convallis erat ipsum mattis velit. Pellentesque
-porttitor, mauris vitae aliquam mattis, metus nisl viverra turpis, vel
-convallis metus sapien et ex. Nunc consequat ipsum id dolor eleifend,
-sit amet semper eros sodales. Pellentesque consectetur, dui quis
-venenatis malesuada, nunc lorem lacinia libero, vitae malesuada dui arcu
-in augue. Aliquam id sagittis libero. Vestibulum aliquet sagittis
-libero, non posuere odio molestie ut. Curabitur lacus enim, viverra vel
-odio non, pretium efficitur elit. Mauris posuere efficitur interdum.
-Nunc sed bibendum turpis, quis fringilla velit. Phasellus eu lorem
-lobortis eros molestie laoreet.</p>
-<pre class="r"><code># Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = &quot;identity&quot;) +
-  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
+pretest_pol_summary</code></pre>
+<pre><code>## # A tibble: 4 × 5
+## # Groups:   delib [2]
+##   delib            partyid         mean_pol se_pol     n
+##   &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;          &lt;dbl&gt;  &lt;dbl&gt; &lt;int&gt;
+## 1 0 [control]      1 [Democrats]       35.7   3.47    36
+## 2 0 [control]      2 [Republicans]     24.2   2.38    52
+## 3 1 [deliberation] 1 [Democrats]       24.7   1.96    58
+## 4 1 [deliberation] 2 [Republicans]     14.6   1.83    54</code></pre>
+<p>Finally, below I use ggplot to create a bar graph using the
+pretest_pol_summary data frame, with condition (delib) on the x axis,
+polarization on the y axis (mean_pol), with fill color according to
+partyid. Stat = “identity” ensures that the bars represent the actual
+values of mean polarization scores and position = “dodge” ensures that
+the bars appear side by side. The error bars are created by setting
+minimum and maximum values using the mean and standard error values for
+each group. The remaining code sets labels for the groups on the x axis,
+colors and labels for the bar fill and components of the key, labels for
+the x and y axis and the key, and a title for the graph.</p>
+<pre class="r"><code>library(ggplot2)
+
+ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(partyid))) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;) +
+  geom_errorbar(aes(ymin = mean_pol - se_pol, 
+                    ymax = mean_pol + se_pol),
+                position = position_dodge(0.9), width = 0.2) +
+  scale_x_discrete(labels = c(&quot;Control&quot;, &quot;Deliberation&quot;)) +
+  scale_fill_manual(values = c(&quot;blue&quot;, &quot;red&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  labs(x = &quot;Condition&quot;, y = &quot;Mean Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
 <p><img src="p01_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<p>Sed mollis purus faucibus leo finibus, ut pharetra nibh elementum.
-Nulla id orci lorem. Mauris sollicitudin mi eget tellus vehicula, ut
-convallis lorem mollis. In blandit nulla diam, a malesuada sem volutpat
-interdum. Ut elementum elit at velit maximus, ac tempor odio porttitor.
-Suspendisse lobortis sollicitudin tortor, ut pharetra libero luctus a.
-Sed hendrerit faucibus metus. Sed rutrum purus vel pellentesque
-euismod.</p>
-<pre class="r"><code># Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = &quot;identity&quot;) +
-  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
-<p><img src="p01_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<p>Mauris placerat in velit a pharetra. Nulla viverra bibendum lectus,
-ut lobortis nibh. Aenean malesuada, orci vitae dictum placerat, enim
-justo aliquet leo, ac tincidunt augue ipsum et mi. Nullam in pharetra
-metus, nec molestie felis. Duis varius rhoncus pulvinar. Integer semper
-urna sed tellus rhoncus, vel suscipit odio iaculis. Mauris iaculis neque
-pellentesque ex convallis venenatis. Sed ultrices euismod fermentum. Ut
-feugiat risus at turpis tincidunt viverra.</p>
-<pre class="r"><code># Create a barplot of the number of fish encounters by species
-ggplot(data = fish_encounters, aes(x = station, y = seen)) +
-  geom_bar(stat = &quot;identity&quot;) +
-  labs(x = &quot;Species&quot;, y = &quot;Number of Fish Encounters&quot;)</code></pre>
-<p><img src="p01_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<p>Donec sagittis suscipit orci in ultrices. Vivamus iaculis eleifend
-est et dictum. Fusce non urna at lacus dapibus tincidunt ac sed nibh.
-Donec luctus lectus elit, ac ultrices tortor mollis sit amet. Nulla
-finibus lacinia arcu. Proin sollicitudin non odio et pulvinar. Maecenas
-finibus faucibus finibus. Ut elementum metus velit, a sodales sapien
-commodo et. Vivamus pulvinar, sapien et porta cursus, elit est luctus
-nisi, eget fringilla odio diam et enim. Sed sodales suscipit bibendum.
-Morbi ut metus semper, laoreet felis sodales, consequat dolor.</p>
+<p>The bar graph above represents pre-test polarization scores of
+Democrats and Republicans in a control group and deliberation group. At
+pre-test in the deliberation condition, participants were seated at a
+table with equal numbers of Democrats and Republicans but had not yet
+done the deliberation exercise (a structured, goal-oriented conversation
+on political topics). At pre-test in the control condition, participants
+were alone. Therefore, the overall difference in pre-test polarization
+scores between control and deliberation participants represents the
+effect of minimal intergroup contact on affective politcal polarization
+(hence the graph title). We cannot say from this graph, however, whether
+there is an overall main effect of condition of pre-test polarization.
+We can see from the graph that, within condition, there is a main effect
+of party affiliation such that Democrats are polarized than Republicans
+in both the control and deliberation conditions. We can also see that,
+within each party, there is a main effect of condition such that control
+Democrats are more polarized than deliberation Democrats and control
+Republicans are more polarized than deliberation Republicans.</p>
+<p>The end.</p>
 
 
 
