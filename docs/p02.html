@@ -302,54 +302,98 @@ This includes…</p>
 </blockquote>
 <div id="before-and-after-datasets" class="section level3">
 <h3>“Before and After” Datasets</h3>
-<p>See below, first, the “before” dataset (named wide_data). It has 100
-observations (participants) with scores on 29 variables. The names of
+<p>First, check out the “before” dataset (named wide_data). It has 100
+observations (participants) with scores on 17 variables. The names of
 many of those variables index the kind of attitude that was measured
 (prejudicial, discriminatory, or stereotypes), when it was measured
 (pretest or posttest), and who was the target of the attitude (Democrats
-or Republicans). Then, see the “after” dataset (named long_data). It has
-400 observations on only 7 variables. I achieved this in SPSS, but in
-this project I’m going to try to do it in R.</p>
+or Republicans).</p>
 <pre class="r"><code>library(tidyverse)
 library(haven)
 long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)
 wide_data &lt;- read_sav(&quot;data/V.3 CLEANED DATA copy.sav&quot;)
-wide_data</code></pre>
-<pre><code>## # A tibble: 100 × 29
-##    group participant delib        seating partyid prej_preD prej_postD prej_preR
-##    &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl+lbl&gt;    &lt;dbl+l&gt; &lt;dbl+l&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;
-##  1  1206           1 1 [delibera… 1 [div… 1 [Dem…      23.6      19.9       67.9
-##  2  1206           2 1 [delibera… 1 [div… 1 [Dem…      37.8      46.1       70.6
-##  3  1206           3 1 [delibera… 1 [div… 1 [Dem…      41.1      41.1       47.4
-##  4  1206           4 1 [delibera… 1 [div… 2 [Rep…      52.8      35.6       43.9
-##  5  1206           5 1 [delibera… 1 [div… 1 [Dem…      29.6      23.9       28.9
-##  6  1206           6 1 [delibera… 1 [div… 1 [Dem…      16.7      20.6       71.9
-##  7  1207           7 1 [delibera… 2 [alt… 2 [Rep…      48.9      54.4       37.2
-##  8  1207           8 1 [delibera… 2 [alt… 2 [Rep…      64.9      66.9       51.8
-##  9  1207           9 1 [delibera… 2 [alt… 1 [Dem…      44.6       6.67      62.3
-## 10  1207          10 1 [delibera… 2 [alt… 2 [Rep…      76.1      78.9       25.6
-## # ℹ 90 more rows
-## # ℹ 21 more variables: prej_postR &lt;dbl&gt;, discr_preD &lt;dbl&gt;, discr_postD &lt;dbl&gt;,
-## #   discr_preR &lt;dbl&gt;, discr_postR &lt;dbl&gt;, stereo_preD &lt;dbl&gt;, stereo_postD &lt;dbl&gt;,
-## #   stereo_preR &lt;dbl&gt;, stereo_postR &lt;dbl&gt;, prej_pre_overall &lt;dbl&gt;,
-## #   prej_post_overall &lt;dbl&gt;, discr_pre_overall &lt;dbl&gt;, discr_post_overall &lt;dbl&gt;,
-## #   stereo_pre_overall &lt;dbl&gt;, stereo_post_overall &lt;dbl&gt;, bias_preD &lt;dbl&gt;,
-## #   bias_postD &lt;dbl&gt;, bias_preR &lt;dbl&gt;, bias_postR &lt;dbl&gt;, …</code></pre>
-<pre class="r"><code>long_data</code></pre>
-<pre><code>## # A tibble: 400 × 7
-##    participant delib            partyid       target  time     bias polarization
-##          &lt;dbl&gt; &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;     &lt;dbl+l&gt; &lt;dbl+l&gt; &lt;dbl&gt;        &lt;dbl&gt;
-##  1           1 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  12.0        52.3 
-##  2           1 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  17.0        42.9 
-##  3           1 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  64.3        52.3 
-##  4           1 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  60.0        42.9 
-##  5           2 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  30.0        33.1 
-##  6           2 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  25.1        30.0 
-##  7           2 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  63.1        33.1 
-##  8           2 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  55.0        30.0 
-##  9           3 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  40.8         7.67
-## 10           3 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  26.2        15.0 
-## # ℹ 390 more rows</code></pre>
+glimpse(wide_data)</code></pre>
+<pre><code>## Rows: 100
+## Columns: 17
+## $ group        &lt;dbl&gt; 1206, 1206, 1206, 1206, 1206, 1206, 1207, 1207, 1207, 120…
+## $ participant  &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17…
+## $ delib        &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ seating      &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1,…
+## $ partyid      &lt;dbl+lbl&gt; 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1,…
+## $ prej_preD    &lt;dbl&gt; 23.55556, 37.77778, 41.11111, 52.77778, 29.55556, 16.6666…
+## $ prej_postD   &lt;dbl&gt; 19.888889, 46.111111, 41.111111, 35.555556, 23.888889, 20…
+## $ prej_preR    &lt;dbl&gt; 67.88889, 70.55556, 47.44444, 43.88889, 28.88889, 71.8888…
+## $ prej_postR   &lt;dbl&gt; 75.77778, 67.22222, 42.22222, 35.55556, 25.55556, 38.1111…
+## $ discr_preD   &lt;dbl&gt; 0, 25, 50, 50, 50, 25, 50, 50, 50, 25, 50, 0, 50, 25, 25,…
+## $ discr_postD  &lt;dbl&gt; 0, 0, 25, 50, 50, 0, 50, 50, 0, 25, 0, 0, 50, 25, 25, 50,…
+## $ discr_preR   &lt;dbl&gt; 50, 75, 50, 50, 25, 25, 50, 50, 50, 25, 50, 25, 50, 75, 1…
+## $ discr_postR  &lt;dbl&gt; 50, 50, 50, 50, 50, 75, 50, 50, 50, 25, 50, 25, 50, 75, 1…
+## $ stereo_preD  &lt;dbl&gt; 12.500000, 27.083333, 31.250000, 45.833333, 29.166667, 33…
+## $ stereo_postD &lt;dbl&gt; 31.250000, 29.166667, 12.500000, 43.750000, 16.666667, 8.…
+## $ stereo_preR  &lt;dbl&gt; 75.00000, 43.75000, 47.91667, 43.75000, 27.08333, 52.0833…
+## $ stereo_postR &lt;dbl&gt; 54.16667, 47.91667, 31.25000, 45.83333, 18.75000, 27.5000…</code></pre>
+<p>Then, check out the “after” dataset (named long_data). It has 400
+observations on only 7 variables. It combines the different attitude
+variables into one variable called bias and indexes bias according to
+scores on time and target variables. It also includes a key variable
+called polarization which is indexed only according to time and is the
+absolute value of the difference between bias scores towards different
+targets.</p>
+<pre class="r"><code>glimpse(long_data)</code></pre>
+<pre><code>## Rows: 400
+## Columns: 7
+## $ participant  &lt;dbl&gt; 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, …
+## $ delib        &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ partyid      &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1,…
+## $ target       &lt;dbl+lbl&gt; 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1,…
+## $ time         &lt;dbl+lbl&gt; 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,…
+## $ bias         &lt;dbl&gt; 12.01852, 17.04630, 64.29630, 59.98148, 29.95370, 25.0925…
+## $ polarization &lt;dbl&gt; 52.2777778, 42.9351852, 52.2777778, 42.9351852, 33.148148…</code></pre>
+<p>This is the strucutre and these the variables that I needed to make
+the graphs and the comparisons that I wanted to make with my data. I
+achieved this beautiful transformation in SPSS, but in this project I’m
+going to try to apply what I’ve learned so far and do it in R.</p>
+</div>
+<div
+id="combine-attitude-variables-into-one-bias-variable-and-removing-unneeded-variables"
+class="section level3">
+<h3>Combine Attitude Variables into One Bias Variable and Removing
+Unneeded Variables</h3>
+<p>First, I’m going to create four bias variables (one for each time and
+target combination) by taking the mean of the appropriate attitude
+variables. Then I’ll remove the variables that I don’t need or am
+uninterested in at the moment.</p>
+<pre class="r"><code>wide_data &lt;- wide_data %&gt;%
+  mutate(
+    bias_preD = rowMeans(across(c(prej_preD, discr_preD, stereo_preD)), na.rm = TRUE),
+    bias_postD = rowMeans(across(c(prej_postD, discr_postD, stereo_postD)), na.rm = TRUE),
+bias_preR = rowMeans(across(c(prej_preR, discr_preR, stereo_preR)), na.rm = TRUE),
+bias_postR = rowMeans(across(c(prej_postR, discr_postR, stereo_postR)), na.rm = TRUE)
+         ) %&gt;% 
+  select(-group, -seating, -prej_preD, -discr_preD, -stereo_preD, -prej_postD,
+         -discr_postD, -stereo_postD, -prej_preR, -discr_preR, -stereo_preR,
+         -prej_postR, -discr_postR, -stereo_postR)
+#Thanks to ChatGPT for recommending the rowMeans function and the bit to remove missing values. I would have done it in a slightly different, inferior way (adding variables and dividing by 3 and not acounting for missing values). And thanks to Claude.ai for recommending the across() function (instead of the select() function recommended by Chat——I just like this version better aesthetically).
+glimpse(wide_data)</code></pre>
+<pre><code>## Rows: 100
+## Columns: 7
+## $ participant &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,…
+## $ delib       &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+## $ partyid     &lt;dbl+lbl&gt; 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, …
+## $ bias_preD   &lt;dbl&gt; 12.01852, 29.95370, 40.78704, 49.53704, 36.24074, 25.00000…
+## $ bias_postD  &lt;dbl&gt; 17.046296, 25.092593, 26.203704, 43.101852, 30.185185, 9.6…
+## $ bias_preR   &lt;dbl&gt; 64.29630, 63.10185, 48.45370, 45.87963, 26.99074, 49.65741…
+## $ bias_postR  &lt;dbl&gt; 59.98148, 55.04630, 41.15741, 43.79630, 31.43519, 46.87037…</code></pre>
+<p>Now I have a pretty tidy dataset with 100 observations of only 7
+variables. However, four of those variables could become one variable if
+they were indexed (I don’t know if ‘indexed’ is the appropriate
+terminology for what I’m referring to, but hopefuly it captures my
+meaning) by scores on additional variables, time and target.
+Polarization is also one of the key dependent variables I’m interested
+in, and we have yet to create it.</p>
+</div>
+<div id="going-from-wide-to-long" class="section level3">
+<h3>Going from Wide to Long</h3>
 </div>
 
 

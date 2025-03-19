@@ -5,11 +5,40 @@ title: "Portfolio Project 2 - "
 > My goal in this project is to attempt to do (at least some of) the things that I did using SPSS prior to completing Portfolio Project 1. This includes...
 
 ### "Before and After" Datasets
-See below, first, the "before" dataset (named wide_data). It has 100 observations (participants) with scores on 29 variables. The names of many of those variables index the kind of attitude that was measured (prejudicial, discriminatory, or stereotypes), when it was measured (pretest or posttest), and who was the target of the attitude (Democrats or Republicans). Then, see the "after" dataset (named long_data). It has 400 observations on only 7 variables. I achieved this in SPSS, but in this project I'm going to try to do it in R.
+First, check out the "before" dataset (named wide_data). It has 100 observations (participants) with scores on 17 variables. The names of many of those variables index the kind of attitude that was measured (prejudicial, discriminatory, or stereotypes), when it was measured (pretest or posttest), and who was the target of the attitude (Democrats or Republicans). 
+
 ```{r laod packages and import data, message=FALSE}
 library(tidyverse)
 library(haven)
 long_data <- read_sav("data/LongData copy.sav")
 wide_data <- read_sav("data/V.3 CLEANED DATA copy.sav")
-wide_data
-long_data
+glimpse(wide_data)
+```
+
+Then, check out the "after" dataset (named long_data). It has 400 observations on only 7 variables. It combines the different attitude variables into one variable called bias and indexes bias according to scores on time and target variables. It also includes a key variable called polarization which is indexed only according to time and is the absolute value of the difference between bias scores towards different targets.
+
+```{r glimpse_long_data}
+glimpse(long_data)
+```
+
+This is the strucutre and these the variables that I needed to make the graphs and the comparisons that I wanted to make with my data. I achieved this beautiful transformation in SPSS, but in this project I'm going to try to apply what I've learned so far and do it in R.
+
+### Combine Attitude Variables into One Bias Variable and Removing Unneeded Variables
+First, I'm going to create four bias variables (one for each time and target combination) by taking the mean of the appropriate attitude variables. Then I'll remove the variables that I don't need or am uninterested in at the moment.
+```{r creating_bias}
+wide_data <- wide_data %>%
+  mutate(
+    bias_preD = rowMeans(across(c(prej_preD, discr_preD, stereo_preD)), na.rm = TRUE),
+    bias_postD = rowMeans(across(c(prej_postD, discr_postD, stereo_postD)), na.rm = TRUE),
+bias_preR = rowMeans(across(c(prej_preR, discr_preR, stereo_preR)), na.rm = TRUE),
+bias_postR = rowMeans(across(c(prej_postR, discr_postR, stereo_postR)), na.rm = TRUE)
+         ) %>% 
+  select(-group, -seating, -prej_preD, -discr_preD, -stereo_preD, -prej_postD,
+         -discr_postD, -stereo_postD, -prej_preR, -discr_preR, -stereo_preR,
+         -prej_postR, -discr_postR, -stereo_postR)
+#Thanks to ChatGPT for recommending the rowMeans function and the bit to remove missing values. I would have done it in a slightly different, inferior way (adding variables and dividing by 3 and not acounting for missing values). And thanks to Claude.ai for recommending the across() function (instead of the select() function recommended by Chat——I just like this version better aesthetically).
+glimpse(wide_data)
+```
+Now I have a pretty tidy dataset with 100 observations of only 7 variables. However, four of those variables could become one variable if they were indexed (I don't know if 'indexed' is the appropriate terminology for what I'm referring to, but hopefuly it captures my meaning) by scores on additional variables, time and target. Polarization is also one of the key dependent variables I'm interested in, and we have yet to create it.
+
+### Going from Wide to Long
