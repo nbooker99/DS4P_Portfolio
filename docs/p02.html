@@ -11,9 +11,9 @@
 
 
 
-<title>Portfolio 2</title>
+<title>Portfolio Project 2 -</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -141,11 +141,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +178,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +187,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -293,18 +290,67 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio 2</h1>
+<h1 class="title toc-ignore">Portfolio Project 2 -</h1>
 
 </div>
 
 
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>My goal in this project is to attempt to do (at least some of) the
+things that I did using SPSS prior to completing Portfolio Project 1.
+This includes…</p>
 </blockquote>
+<div id="before-and-after-datasets" class="section level3">
+<h3>“Before and After” Datasets</h3>
+<p>See below, first, the “before” dataset (named wide_data). It has 100
+observations (participants) with scores on 29 variables. The names of
+many of those variables index the kind of attitude that was measured
+(prejudicial, discriminatory, or stereotypes), when it was measured
+(pretest or posttest), and who was the target of the attitude (Democrats
+or Republicans). Then, see the “after” dataset (named long_data). It has
+400 observations on only 7 variables. I achieved this in SPSS, but in
+this project I’m going to try to do it in R.</p>
+<pre class="r"><code>library(tidyverse)
+library(haven)
+long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)
+wide_data &lt;- read_sav(&quot;data/V.3 CLEANED DATA copy.sav&quot;)
+wide_data</code></pre>
+<pre><code>## # A tibble: 100 × 29
+##    group participant delib        seating partyid prej_preD prej_postD prej_preR
+##    &lt;dbl&gt;       &lt;dbl&gt; &lt;dbl+lbl&gt;    &lt;dbl+l&gt; &lt;dbl+l&gt;     &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+##  1  1206           1 1 [delibera… 1 [div… 1 [Dem…      23.6      19.9       67.9
+##  2  1206           2 1 [delibera… 1 [div… 1 [Dem…      37.8      46.1       70.6
+##  3  1206           3 1 [delibera… 1 [div… 1 [Dem…      41.1      41.1       47.4
+##  4  1206           4 1 [delibera… 1 [div… 2 [Rep…      52.8      35.6       43.9
+##  5  1206           5 1 [delibera… 1 [div… 1 [Dem…      29.6      23.9       28.9
+##  6  1206           6 1 [delibera… 1 [div… 1 [Dem…      16.7      20.6       71.9
+##  7  1207           7 1 [delibera… 2 [alt… 2 [Rep…      48.9      54.4       37.2
+##  8  1207           8 1 [delibera… 2 [alt… 2 [Rep…      64.9      66.9       51.8
+##  9  1207           9 1 [delibera… 2 [alt… 1 [Dem…      44.6       6.67      62.3
+## 10  1207          10 1 [delibera… 2 [alt… 2 [Rep…      76.1      78.9       25.6
+## # ℹ 90 more rows
+## # ℹ 21 more variables: prej_postR &lt;dbl&gt;, discr_preD &lt;dbl&gt;, discr_postD &lt;dbl&gt;,
+## #   discr_preR &lt;dbl&gt;, discr_postR &lt;dbl&gt;, stereo_preD &lt;dbl&gt;, stereo_postD &lt;dbl&gt;,
+## #   stereo_preR &lt;dbl&gt;, stereo_postR &lt;dbl&gt;, prej_pre_overall &lt;dbl&gt;,
+## #   prej_post_overall &lt;dbl&gt;, discr_pre_overall &lt;dbl&gt;, discr_post_overall &lt;dbl&gt;,
+## #   stereo_pre_overall &lt;dbl&gt;, stereo_post_overall &lt;dbl&gt;, bias_preD &lt;dbl&gt;,
+## #   bias_postD &lt;dbl&gt;, bias_preR &lt;dbl&gt;, bias_postR &lt;dbl&gt;, …</code></pre>
+<pre class="r"><code>long_data</code></pre>
+<pre><code>## # A tibble: 400 × 7
+##    participant delib            partyid       target  time     bias polarization
+##          &lt;dbl&gt; &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;     &lt;dbl+l&gt; &lt;dbl+l&gt; &lt;dbl&gt;        &lt;dbl&gt;
+##  1           1 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  12.0        52.3 
+##  2           1 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  17.0        42.9 
+##  3           1 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  64.3        52.3 
+##  4           1 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  60.0        42.9 
+##  5           2 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  30.0        33.1 
+##  6           2 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  25.1        30.0 
+##  7           2 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  63.1        33.1 
+##  8           2 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  55.0        30.0 
+##  9           3 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  40.8         7.67
+## 10           3 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  26.2        15.0 
+## # ℹ 390 more rows</code></pre>
+</div>
 
 
 

@@ -1,5 +1,15 @@
 ---
-title: "Portfolio 2"
+title: "Portfolio Project 2 - "
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+> My goal in this project is to attempt to do (at least some of) the things that I did using SPSS prior to completing Portfolio Project 1. This includes...
+
+### "Before and After" Datasets
+See below, first, the "before" dataset (named wide_data). It has 100 observations (participants) with scores on 29 variables. The names of many of those variables index the kind of attitude that was measured (prejudicial, discriminatory, or stereotypes), when it was measured (pretest or posttest), and who was the target of the attitude (Democrats or Republicans). Then, see the "after" dataset (named long_data). It has 400 observations on only 7 variables. I achieved this in SPSS, but in this project I'm going to try to do it in R.
+```{r laod packages and import data, message=FALSE}
+library(tidyverse)
+library(haven)
+long_data <- read_sav("data/LongData copy.sav")
+wide_data <- read_sav("data/V.3 CLEANED DATA copy.sav")
+wide_data
+long_data
