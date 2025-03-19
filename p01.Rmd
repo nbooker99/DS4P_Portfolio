@@ -1,5 +1,5 @@
 ---
-title: "Portfolio 1 - Graphing the Effect of Intergroup Contact on Political Polarization"
+title: "Portfolio Project 1 - Graphing the Effect of Intergroup Contact on Political Polarization"
 ---
 
 > My goal is to use my First Year Project data to make a bar graph (similar to one I made using SPSS for my FYP poster) to show the mean pre-test polarization scores of participants grouped by condition (control and deliberation) and party affiliation (Democrat or Republican). Once I make the graph, I will interpret it.
