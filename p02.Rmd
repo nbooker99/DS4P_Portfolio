@@ -39,6 +39,29 @@ bias_postR = rowMeans(across(c(prej_postR, discr_postR, stereo_postR)), na.rm = 
 #Thanks to ChatGPT for recommending the rowMeans function and the bit to remove missing values. I would have done it in a slightly different, inferior way (adding variables and dividing by 3 and not acounting for missing values). And thanks to Claude.ai for recommending the across() function (instead of the select() function recommended by Chat——I just like this version better aesthetically).
 glimpse(wide_data)
 ```
+
+Note on interpreting bias scores: A scores of 0 represents a maximally positive attitude, 50 represents a neutral attitude, and 100 represents a maximally negative atttitude. For example, a Democrat, who, at pretest, maximully loves her own party and maximally hates Republicans would have scores of bias_preD = 0 and bias_preR = 100.
+
 Now I have a pretty tidy dataset with 100 observations of only 7 variables. However, four of those variables could become one variable if they were indexed (I don't know if 'indexed' is the appropriate terminology for what I'm referring to, but hopefuly it captures my meaning) by scores on additional variables, time and target. Polarization is also one of the key dependent variables I'm interested in, and we have yet to create it.
+
+I'll tackle creating the Polarization variable first.
+
+### Creating Polarization Variable
+
+``` {r check_for_na}
+any(is.na(wide_data))
+```
+
+Side note: there are no missing values in the dataset, so no need to account for that in future code.
+
+```{r polarization_var}
+wide_data <- wide_data %>% 
+  mutate(
+    polarization_pre = abs(bias_preD - bias_preR),
+    polarization_post = abs(bias_postD - bias_postR)
+  )
+glimpse(wide_data)
+```
+
 
 ### Going from Wide to Long

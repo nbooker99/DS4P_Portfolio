@@ -384,6 +384,11 @@ glimpse(wide_data)</code></pre>
 ## $ bias_postD  &lt;dbl&gt; 17.046296, 25.092593, 26.203704, 43.101852, 30.185185, 9.6…
 ## $ bias_preR   &lt;dbl&gt; 64.29630, 63.10185, 48.45370, 45.87963, 26.99074, 49.65741…
 ## $ bias_postR  &lt;dbl&gt; 59.98148, 55.04630, 41.15741, 43.79630, 31.43519, 46.87037…</code></pre>
+<p>Note on interpreting bias scores: A scores of 0 represents a
+maximally positive attitude, 50 represents a neutral attitude, and 100
+represents a maximally negative atttitude. For example, a Democrat, who,
+at pretest, maximully loves her own party and maximally hates
+Republicans would have scores of bias_preD = 0 and bias_preR = 100.</p>
 <p>Now I have a pretty tidy dataset with 100 observations of only 7
 variables. However, four of those variables could become one variable if
 they were indexed (I don’t know if ‘indexed’ is the appropriate
@@ -391,6 +396,31 @@ terminology for what I’m referring to, but hopefuly it captures my
 meaning) by scores on additional variables, time and target.
 Polarization is also one of the key dependent variables I’m interested
 in, and we have yet to create it.</p>
+<p>I’ll tackle creating the Polarization variable first.</p>
+</div>
+<div id="creating-polarization-variable" class="section level3">
+<h3>Creating Polarization Variable</h3>
+<pre class="r"><code>any(is.na(wide_data))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>Side note: there are no missing values in the dataset, so no need to
+account for that in future code.</p>
+<pre class="r"><code>wide_data &lt;- wide_data %&gt;% 
+  mutate(
+    polarization_pre = abs(bias_preD - bias_preR),
+    polarization_post = abs(bias_postD - bias_postR)
+  )
+glimpse(wide_data)</code></pre>
+<pre><code>## Rows: 100
+## Columns: 9
+## $ participant       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1…
+## $ delib             &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+## $ partyid           &lt;dbl+lbl&gt; 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 1, 1, 2, 1, 1, 2, …
+## $ bias_preD         &lt;dbl&gt; 12.01852, 29.95370, 40.78704, 49.53704, 36.24074, 25…
+## $ bias_postD        &lt;dbl&gt; 17.046296, 25.092593, 26.203704, 43.101852, 30.18518…
+## $ bias_preR         &lt;dbl&gt; 64.29630, 63.10185, 48.45370, 45.87963, 26.99074, 49…
+## $ bias_postR        &lt;dbl&gt; 59.98148, 55.04630, 41.15741, 43.79630, 31.43519, 46…
+## $ polarization_pre  &lt;dbl&gt; 52.2777778, 33.1481481, 7.6666667, 3.6574074, 9.2500…
+## $ polarization_post &lt;dbl&gt; 42.9351852, 29.9537037, 14.9537037, 0.6944444, 1.250…</code></pre>
 </div>
 <div id="going-from-wide-to-long" class="section level3">
 <h3>Going from Wide to Long</h3>
