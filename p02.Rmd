@@ -18,7 +18,7 @@ glimpse(wide_data)
 Then, check out the "after" dataset (named long_data). It has 400 observations on only 7 variables. It combines the different attitude variables into one variable called bias and indexes bias according to scores on time and target variables. It also includes a key variable called polarization which is indexed only according to time and is the absolute value of the difference between bias scores towards different targets.
 
 ```{r glimpse_long_data}
-glimpse(long_data)
+long_data
 ```
 
 This is the strucutre and these the variables that I needed to make the graphs and the comparisons that I wanted to make with my data. I achieved this beautiful transformation in SPSS, but in this project I'm going to try to apply what I've learned so far and do it in R.
@@ -37,13 +37,54 @@ bias_postR = rowMeans(across(c(prej_postR, discr_postR, stereo_postR)), na.rm = 
          -discr_postD, -stereo_postD, -prej_preR, -discr_preR, -stereo_preR,
          -prej_postR, -discr_postR, -stereo_postR)
 #Thanks to ChatGPT for recommending the rowMeans function and the bit to remove missing values. I would have done it in a slightly different, inferior way (adding variables and dividing by 3 and not acounting for missing values). And thanks to Claude.ai for recommending the across() function (instead of the select() function recommended by Chat——I just like this version better aesthetically).
-glimpse(wide_data)
+wide_data
 ```
 
 Note on interpreting bias scores: A scores of 0 represents a maximally positive attitude, 50 represents a neutral attitude, and 100 represents a maximally negative atttitude. For example, a Democrat, who, at pretest, maximully loves her own party and maximally hates Republicans would have scores of bias_preD = 0 and bias_preR = 100.
 
 Now I have a pretty tidy dataset with 100 observations of only 7 variables. However, four of those variables could become one variable if they were indexed (I don't know if 'indexed' is the appropriate terminology for what I'm referring to, but hopefuly it captures my meaning) by scores on additional variables, time and target. Polarization is also one of the key dependent variables I'm interested in, and we have yet to create it.
 
+
+```{r}
+long_data <- wide_data %>% 
+  pivot_longer(cols = 4:7, names_to = "time_target", values_to = "bias") %>% 
+  mutate(time_target = recode(time_target,
+    "bias_preD" = "1/1",
+    "bias_postD" = "2/1",
+    "bias_preR" = "1/2",
+    "bias_postR" = "2/2"))
+long_data <- long_data %>% 
+  separate(time_target, sep = "/", into = c("time", "target")) %>% 
+  arrange(participant, time, target)
+long_data
+```
+
+Now we've got target, time, and bias variables. In order to get polarization which must be computed by taking the absolute values of the difference of bias scores according to target, we have to restructure the data from long to wide again to get bias scores towards different targets into two separate columns.
+
+```{r}
+long_data <- long_data %>% 
+  pivot_wider(names_from = target, 
+              values_from = bias,
+              names_prefix = "bias_target_")
+long_data
+```
+Now, I'll create the polarization variable.
+```{r}
+long_data <- long_data %>% 
+  mutate(polarization = abs(bias_target_1 - bias_target_2))
+long_data
+```
+
+Now, I'll go back long with...
+
+```{r}
+long_data <- long_data %>% 
+  pivot_longer(cols = 5:6, names_to = "target", values_to = "bias") %>% 
+  mutate(target = recode(target,
+                         "bias_target_1" = 1,
+                         "bias_target_2" = 2))
+long_data
+```
 I'll tackle creating the Polarization variable first.
 
 ### Creating Polarization Variable
@@ -52,7 +93,7 @@ I'll tackle creating the Polarization variable first.
 any(is.na(wide_data))
 ```
 
-Side note: there are no missing values in the dataset, so no need to account for that in future code.
+Side note: there are no missing values in the dataset, so there's no need to account for that in future code.
 
 ```{r polarization_var}
 wide_data <- wide_data %>% 
@@ -65,3 +106,21 @@ glimpse(wide_data)
 
 
 ### Going from Wide to Long
+```{r}
+long_data <- wide_data %>% 
+  pivot_longer(cols = 8:9, names_to = "time", values_to = "polarization") %>% 
+    mutate(time = recode(time, 
+      "polarization_pre" = 1,
+      "polarization_post" = 2))
+glimpse(long_data)
+```
+
+```{r}
+long_data <- long_data %>% 
+  pivot_longer(cols = 4:7, names_to = "target", values_to = "bias") %>% 
+    mutate(target = recode(target,
+    "bias_preD" = 1,
+    "bias_postD" = 1,
+    "bias_preR" = 2,
+    "bias_postR" = 2,))
+glimpse(long_data)
