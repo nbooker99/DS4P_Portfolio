@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio Project 2 -</title>
+<title>Project 2: A Somewhat Complicated Case of Wide-to-Long</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -290,24 +290,21 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Portfolio Project 2 -</h1>
+<h1 class="title toc-ignore">Project 2: A Somewhat Complicated Case of
+Wide-to-Long</h1>
 
 </div>
 
 
 <blockquote>
-<p>My goal in this project is to attempt to do (at least some of) the
-things that I did using SPSS prior to completing Portfolio Project 1.
-This includes…</p>
+<p>My goal in this project is to use R to take the dataset you see below
+(with 17 variables, none of them called polarization) and transform it
+into a dataset that I can use to make the graph you see (further) below,
+of which polarization is the dependent variable. That’s my graph from
+Portfolio Project 1, and I did all the necessary data restructuring
+stuff in SPSS in order to make it. The goal of this project is to
+challenge myself to learn how to do it in R.</p>
 </blockquote>
-<div id="before-and-after-datasets" class="section level3">
-<h3>“Before and After” Datasets</h3>
-<p>First, check out the “before” dataset (named wide_data). It has 100
-observations (participants) with scores on 17 variables. The names of
-many of those variables index the kind of attitude that was measured
-(prejudicial, discriminatory, or stereotypes), when it was measured
-(pretest or posttest), and who was the target of the attitude (Democrats
-or Republicans).</p>
 <pre class="r"><code>library(tidyverse)
 library(haven)
 long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)
@@ -332,42 +329,69 @@ glimpse(wide_data)</code></pre>
 ## $ stereo_postD &lt;dbl&gt; 31.250000, 29.166667, 12.500000, 43.750000, 16.666667, 8.…
 ## $ stereo_preR  &lt;dbl&gt; 75.00000, 43.75000, 47.91667, 43.75000, 27.08333, 52.0833…
 ## $ stereo_postR &lt;dbl&gt; 54.16667, 47.91667, 31.25000, 45.83333, 18.75000, 27.5000…</code></pre>
-<p>Then, check out the “after” dataset (named long_data). It has 400
-observations on only 7 variables. It combines the different attitude
-variables into one variable called bias and indexes bias according to
-scores on time and target variables. It also includes a key variable
-called polarization which is indexed only according to time and is the
-absolute value of the difference between bias scores towards different
-targets.</p>
-<pre class="r"><code>long_data</code></pre>
-<pre><code>## # A tibble: 400 × 7
-##    participant delib            partyid       target  time     bias polarization
-##          &lt;dbl&gt; &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;     &lt;dbl+l&gt; &lt;dbl+l&gt; &lt;dbl&gt;        &lt;dbl&gt;
-##  1           1 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  12.0        52.3 
-##  2           1 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  17.0        42.9 
-##  3           1 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  64.3        52.3 
-##  4           1 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  60.0        42.9 
-##  5           2 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  30.0        33.1 
-##  6           2 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  25.1        30.0 
-##  7           2 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  63.1        33.1 
-##  8           2 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  55.0        30.0 
-##  9           3 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  40.8         7.67
-## 10           3 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  26.2        15.0 
-## # ℹ 390 more rows</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(readr)
+pretest_pol_summary &lt;- suppressMessages(read_csv(&quot;data/pretest_pol_summary.csv&quot;))
+ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(partyid))) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;) +
+  geom_errorbar(aes(ymin = mean_pol - se_pol, 
+                    ymax = mean_pol + se_pol),
+                position = position_dodge(0.9), width = 0.2) +
+  scale_x_discrete(labels = c(&quot;Control&quot;, &quot;Deliberation&quot;)) +
+  scale_fill_manual(values = c(&quot;blue&quot;, &quot;red&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  labs(x = &quot;Condition&quot;, y = &quot;Mean Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="p02_files/figure-html/laod%20packages%20and%20import%20data-1.png" width="672" /></p>
+<div id="before-and-after-datasets-a-glimpse-of-the-goal"
+class="section level3">
+<h3>“Before and After” Datasets: A Glimpse of the Goal</h3>
+<p>First, check out the “Before” dataset again above (named wide_data).
+It has 100 observations (each representing a participant) with scores on
+17 variables. The names of many of those variables (e.g., prej_preD,
+discr_postR, and stereo_postD) denote the kind of attitude that was
+measured (prejudicial, discriminatory, or stereotype), when it was
+measured (pretest or posttest; before and after a deliberation exericise
+where participants discussed political topics), and the target of the
+attitude (Democrats or Republicans).</p>
+<p>Then, check out the “After” dataset below (named long_data). It has
+400 observations (4 observations per 100 participants) of only 7
+variables. It combines the different attitude variables into one
+variable called bias and indexes bias according to scores on time and
+target variables. It also includes the variable I most care about,
+polarization, which is essentially the distance between participants’
+attitudes towards their own party and their attitudes towards the other
+party (which is why, as you might notice by the repeating polarization
+values displayed in the glimpse below, within participants, polarization
+scores only vary by time and not target).</p>
+<pre class="r"><code>glimpse(long_data)</code></pre>
+<pre><code>## Rows: 400
+## Columns: 7
+## $ participant  &lt;dbl&gt; 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, …
+## $ delib        &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
+## $ partyid      &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1,…
+## $ target       &lt;dbl+lbl&gt; 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,…
+## $ time         &lt;dbl+lbl&gt; 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1,…
+## $ bias         &lt;dbl&gt; 12.01852, 64.29630, 17.04630, 59.98148, 29.95370, 63.1018…
+## $ polarization &lt;dbl&gt; 52.2777778, 52.2777778, 42.9351852, 42.9351852, 33.148148…</code></pre>
 <p>This is the strucutre and these the variables that I needed to make
-the graphs and the comparisons that I wanted to make with my data. I
-achieved this beautiful transformation in SPSS, but in this project I’m
-going to try to apply what I’ve learned so far and do it in R.</p>
+the graphs and the comparisons that I wanted to make with my data
+(including the graph from Project 1). I achieved this beautiful
+transformation in SPSS, but in this project I’m going to try to apply
+what I’ve learned so far and do it in R.</p>
 </div>
 <div
-id="combine-attitude-variables-into-one-bias-variable-and-removing-unneeded-variables"
+id="combining-attitude-variables-into-one-bias-variable-while-retaining-information-about-time-and-target"
 class="section level3">
-<h3>Combine Attitude Variables into One Bias Variable and Removing
-Unneeded Variables</h3>
-<p>First, I’m going to create four bias variables (one for each time and
-target combination) by taking the mean of the appropriate attitude
-variables. Then I’ll remove the variables that I don’t need or am
-uninterested in at the moment.</p>
+<h3>Combining Attitude Variables into One Bias Variable while Retaining
+Information about Time and Target</h3>
+<p>First, I’m going to use mutate( ) to create four bias variables (one
+for each time and target combination) by taking the mean of the
+appropriate attitude variables (e.g., prej_preD, discr_preD, and
+stereo_preD get averaged to create a bias_preD variable). This takes
+information from 12 variables and shoves it into only 4 variables. Then
+I’ll use select( ) to remove the variables that I no longer need or am
+uninterested in. See the results below.</p>
 <pre class="r"><code>wide_data &lt;- wide_data %&gt;%
   mutate(
     bias_preD = rowMeans(across(c(prej_preD, discr_preD, stereo_preD)), na.rm = TRUE),
@@ -400,12 +424,20 @@ represents a maximally negative atttitude. For example, a Democrat, who,
 at pretest, maximully loves her own party and maximally hates
 Republicans would have scores of bias_preD = 0 and bias_preR = 100.</p>
 <p>Now I have a pretty tidy dataset with 100 observations of only 7
-variables. However, four of those variables could become one variable if
-they were indexed (I don’t know if ‘indexed’ is the appropriate
+variables.</p>
+<p>However, we really want scores on four of those variables (bias_preD,
+bias_postD, bias_preR, and bias_postR) to become scores on one variable
+(bias) and to be indexed (I don’t know if ‘indexed’ is the appropriate
 terminology for what I’m referring to, but hopefuly it captures my
-meaning) by scores on additional variables, time and target.
-Polarization is also one of the key dependent variables I’m interested
-in, and we have yet to create it.</p>
+meaning) by scores on additional variables, time and target. Information
+about time and target is contained within the current variables names. I
+have to figure out how to get that information out of the variable names
+and into scores on two new variables while getting all the bias scores
+into one bias column.</p>
+<p>After some trial and error, I’ve discovered that the following method
+seems to work (though there may be more efficient ways). Below I use a
+combination of the pivot_longer( ) function and the separate( ) function
+to transform the dataset you see above into the one you see below.</p>
 <pre class="r"><code>long_data &lt;- wide_data %&gt;% 
   pivot_longer(cols = 4:7, names_to = &quot;time_target&quot;, values_to = &quot;bias&quot;) %&gt;% 
   mutate(time_target = recode(time_target,
@@ -431,11 +463,18 @@ long_data</code></pre>
 ##  9           3 1 [deliberation] 1 [Democrats] 1     1       40.8
 ## 10           3 1 [deliberation] 1 [Democrats] 1     2       48.5
 ## # ℹ 390 more rows</code></pre>
-<p>Now we’ve got target, time, and bias variables. In order to get
-polarization which must be computed by taking the absolute values of the
-difference of bias scores according to target, we have to restructure
-the data from long to wide again to get bias scores towards different
-targets into two separate columns.</p>
+<pre class="r"><code>### Thanks to posit&#39;s &quot;data tidying with tidyr cheatsheet&quot; for help with the pivot_longer( ) and separate( ) functions.</code></pre>
+<p>Now we’ve got target, time, and bias variables—but not yet the one
+variable I really care about.</p>
+</div>
+<div id="creating-polarization-variable" class="section level3">
+<h3>Creating Polarization Variable</h3>
+<p>Now I want to create the polarization variable, and I want it to
+represent the distance between participants’ in-group and out-group
+attitudes. I can do this by taking the absolute values of the difference
+of bias scores according to target. But first, I have to restructure the
+data from long to wide again using the pivot_wider( ) function to get
+bias scores towards different targets into two separate columns.</p>
 <pre class="r"><code>long_data &lt;- long_data %&gt;% 
   pivot_wider(names_from = target, 
               values_from = bias,
@@ -455,7 +494,9 @@ long_data</code></pre>
 ##  9           5 1 [deliberation] 1 [Democrats]  1              36.2          27.0
 ## 10           5 1 [deliberation] 1 [Democrats]  2              30.2          31.4
 ## # ℹ 190 more rows</code></pre>
-<p>Now, I’ll create the polarization variable.</p>
+<p>Now, that bias towards Democrats (bias_target_1) and bias towards
+Republicans (bias_target_2) are in two separate columns, I’ll create the
+polarization variable using the mutate( ) function.</p>
 <pre class="r"><code>long_data &lt;- long_data %&gt;% 
   mutate(polarization = abs(bias_target_1 - bias_target_2))
 long_data</code></pre>
@@ -473,89 +514,72 @@ long_data</code></pre>
 ##  9           5 1 [delibe… 1 [Dem… 1              36.2          27.0        9.25 
 ## 10           5 1 [delibe… 1 [Dem… 2              30.2          31.4        1.25 
 ## # ℹ 190 more rows</code></pre>
-<p>Now, I’ll go back long with…</p>
+<p>Now, that I finally have the polarization variable, I’ll use the
+pivot_longer( ) function one more time to restore our bias and target
+variables and use the select( ) function to order the variables the way
+I want them.</p>
 <pre class="r"><code>long_data &lt;- long_data %&gt;% 
   pivot_longer(cols = 5:6, names_to = &quot;target&quot;, values_to = &quot;bias&quot;) %&gt;% 
   mutate(target = recode(target,
                          &quot;bias_target_1&quot; = 1,
-                         &quot;bias_target_2&quot; = 2))
+                         &quot;bias_target_2&quot; = 2)) %&gt;% 
+  select(participant, delib, partyid, time, target, bias, polarization)
 long_data</code></pre>
 <pre><code>## # A tibble: 400 × 7
-##    participant delib            partyid       time  polarization target  bias
-##          &lt;dbl&gt; &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;     &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-##  1           1 1 [deliberation] 1 [Democrats] 1            52.3       1  12.0
-##  2           1 1 [deliberation] 1 [Democrats] 1            52.3       2  64.3
-##  3           1 1 [deliberation] 1 [Democrats] 2            42.9       1  17.0
-##  4           1 1 [deliberation] 1 [Democrats] 2            42.9       2  60.0
-##  5           2 1 [deliberation] 1 [Democrats] 1            33.1       1  30.0
-##  6           2 1 [deliberation] 1 [Democrats] 1            33.1       2  63.1
-##  7           2 1 [deliberation] 1 [Democrats] 2            30.0       1  25.1
-##  8           2 1 [deliberation] 1 [Democrats] 2            30.0       2  55.0
-##  9           3 1 [deliberation] 1 [Democrats] 1             7.67      1  40.8
-## 10           3 1 [deliberation] 1 [Democrats] 1             7.67      2  48.5
+##    participant delib            partyid       time  target  bias polarization
+##          &lt;dbl&gt; &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;     &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;
+##  1           1 1 [deliberation] 1 [Democrats] 1          1  12.0        52.3 
+##  2           1 1 [deliberation] 1 [Democrats] 1          2  64.3        52.3 
+##  3           1 1 [deliberation] 1 [Democrats] 2          1  17.0        42.9 
+##  4           1 1 [deliberation] 1 [Democrats] 2          2  60.0        42.9 
+##  5           2 1 [deliberation] 1 [Democrats] 1          1  30.0        33.1 
+##  6           2 1 [deliberation] 1 [Democrats] 1          2  63.1        33.1 
+##  7           2 1 [deliberation] 1 [Democrats] 2          1  25.1        30.0 
+##  8           2 1 [deliberation] 1 [Democrats] 2          2  55.0        30.0 
+##  9           3 1 [deliberation] 1 [Democrats] 1          1  40.8         7.67
+## 10           3 1 [deliberation] 1 [Democrats] 1          2  48.5         7.67
 ## # ℹ 390 more rows</code></pre>
-<p>I’ll tackle creating the Polarization variable first.</p>
+<pre class="r"><code>### Thanks Claude.ai for helping me figure out to recode the target variables.</code></pre>
+<p>Viola! There you have it: The beautifully simple dataset that should
+allow me to make all the graphs my heart desires, all the graphs I can
+imagine to milk this data of all its insight.</p>
 </div>
-<div id="creating-polarization-variable" class="section level3">
-<h3>Creating Polarization Variable</h3>
-<pre class="r"><code>any(is.na(wide_data))</code></pre>
-<pre><code>## [1] FALSE</code></pre>
-<p>Side note: there are no missing values in the dataset, so there’s no
-need to account for that in future code.</p>
-<pre class="r"><code>wide_data &lt;- wide_data %&gt;% 
-  mutate(
-    polarization_pre = abs(bias_preD - bias_preR),
-    polarization_post = abs(bias_postD - bias_postR)
-  )
-glimpse(wide_data)</code></pre>
-<pre><code>## Rows: 100
-## Columns: 9
-## $ participant       &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1…
-## $ delib             &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
-## $ partyid           &lt;dbl+lbl&gt; 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 1, 1, 2, 1, 1, 2, …
-## $ bias_preD         &lt;dbl&gt; 12.01852, 29.95370, 40.78704, 49.53704, 36.24074, 25…
-## $ bias_postD        &lt;dbl&gt; 17.046296, 25.092593, 26.203704, 43.101852, 30.18518…
-## $ bias_preR         &lt;dbl&gt; 64.29630, 63.10185, 48.45370, 45.87963, 26.99074, 49…
-## $ bias_postR        &lt;dbl&gt; 59.98148, 55.04630, 41.15741, 43.79630, 31.43519, 46…
-## $ polarization_pre  &lt;dbl&gt; 52.2777778, 33.1481481, 7.6666667, 3.6574074, 9.2500…
-## $ polarization_post &lt;dbl&gt; 42.9351852, 29.9537037, 14.9537037, 0.6944444, 1.250…</code></pre>
+<div id="testing-the-results" class="section level3">
+<h3>Testing the Results</h3>
+<p>To make sure it’s the same as the “After” dataset that we glimpsed at
+the beginning of this project, I’ll now use the same code I used to make
+the graph up top. The code acts on the long_data dataset (using it to
+create a pretest_pol_summary dataset), which, after my first
+pivot_longer( ) function above, ceased to be the original long_data and
+became the new done-completely-with-R long_data).</p>
+<p>Without further adieu:</p>
+<pre class="r"><code>pretest_pol_summary &lt;- long_data %&gt;%
+  filter(time == 1) %&gt;%
+  group_by(delib, partyid) %&gt;% 
+  summarise(
+    mean_pol = mean(polarization, na.rm = TRUE),
+    se_pol = sd(polarization, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  )</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;delib&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(partyid))) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;) +
+  geom_errorbar(aes(ymin = mean_pol - se_pol, 
+                    ymax = mean_pol + se_pol),
+                position = position_dodge(0.9), width = 0.2) +
+  scale_x_discrete(labels = c(&quot;Control&quot;, &quot;Deliberation&quot;)) +
+  scale_fill_manual(values = c(&quot;blue&quot;, &quot;red&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  labs(x = &quot;Condition&quot;, y = &quot;Mean Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="p02_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
-<div id="going-from-wide-to-long" class="section level3">
-<h3>Going from Wide to Long</h3>
-<pre class="r"><code>long_data &lt;- wide_data %&gt;% 
-  pivot_longer(cols = 8:9, names_to = &quot;time&quot;, values_to = &quot;polarization&quot;) %&gt;% 
-    mutate(time = recode(time, 
-      &quot;polarization_pre&quot; = 1,
-      &quot;polarization_post&quot; = 2))
-glimpse(long_data)</code></pre>
-<pre><code>## Rows: 200
-## Columns: 9
-## $ participant  &lt;dbl&gt; 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10,…
-## $ delib        &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
-## $ partyid      &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1,…
-## $ bias_preD    &lt;dbl&gt; 12.01852, 12.01852, 29.95370, 29.95370, 40.78704, 40.7870…
-## $ bias_postD   &lt;dbl&gt; 17.046296, 17.046296, 25.092593, 25.092593, 26.203704, 26…
-## $ bias_preR    &lt;dbl&gt; 64.29630, 64.29630, 63.10185, 63.10185, 48.45370, 48.4537…
-## $ bias_postR   &lt;dbl&gt; 59.98148, 59.98148, 55.04630, 55.04630, 41.15741, 41.1574…
-## $ time         &lt;dbl&gt; 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, …
-## $ polarization &lt;dbl&gt; 52.2777778, 42.9351852, 33.1481481, 29.9537037, 7.6666667…</code></pre>
-<pre class="r"><code>long_data &lt;- long_data %&gt;% 
-  pivot_longer(cols = 4:7, names_to = &quot;target&quot;, values_to = &quot;bias&quot;) %&gt;% 
-    mutate(target = recode(target,
-    &quot;bias_preD&quot; = 1,
-    &quot;bias_postD&quot; = 1,
-    &quot;bias_preR&quot; = 2,
-    &quot;bias_postR&quot; = 2,))
-glimpse(long_data)</code></pre>
-<pre><code>## Rows: 800
-## Columns: 7
-## $ participant  &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, …
-## $ delib        &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
-## $ partyid      &lt;dbl+lbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…
-## $ time         &lt;dbl&gt; 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, …
-## $ polarization &lt;dbl&gt; 52.277778, 52.277778, 52.277778, 52.277778, 42.935185, 42…
-## $ target       &lt;dbl&gt; 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, …
-## $ bias         &lt;dbl&gt; 12.01852, 17.04630, 64.29630, 59.98148, 12.01852, 17.0463…</code></pre>
+<div id="success" class="section level3">
+<h3>SUCCESS!!</h3>
+<p>This one graph is only the tip of the iceberg (a small iceberg) of
+what I can explore with this dataset structured in this way. More graphs
+are to come in the next project!</p>
 </div>
 
 
