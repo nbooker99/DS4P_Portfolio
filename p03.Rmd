@@ -3,3 +3,72 @@ title: "Portfolio 3"
 ---
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+
+I relied heavily on AI for the graph in project 1. Now that I know more about ggplot and more about the priniciples of effective data visualization, I'm going to try to do the graph on my own and do it differently.
+
+I learned that bar graphs are not always the best way to compare group means.
+Let's try a boxplot instead
+
+```{r load_packages_import_data, message=FALSE}
+library(tidyverse)
+library(haven)
+pretest_pol_summary <- suppressMessages(read_csv("data/pretest_pol_summary.csv"))
+long_data <- read_sav("data/LongData copy.sav")
+```
+
+```{r barplot}
+ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(partyid))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_pol - se_pol, 
+                    ymax = mean_pol + se_pol),
+                position = position_dodge(0.9), width = 0.2) +
+  scale_x_discrete(labels = c("Control", "Deliberation")) +
+  #I used colorbrewer2.0 to improve the colors
+  scale_fill_manual(values = c("#377eb8", "#e41a1c"), labels = c("Democrat", "Republican")) +
+  labs(x = "Condition", y = "Mean Pre-test Polarization", fill = "Party ID") +
+  ggtitle("Effect of Minimal Intergroup Contact on Affective Partisan Polarization") +
+  theme_minimal()
+```
+
+```{r boxplot1}
+long_data %>% 
+  filter(time == 1) %>% 
+  ggplot(aes(x = factor(delib), y = polarization)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = c("No", "Yes")) +
+  labs(x = "Cross-Party Contact", 
+       y = "Pre-test Polarization", 
+       title = "Effect of Minimal Intergroup Contact on Affective Partisan Polarization"
+       ) + 
+  geom_jitter(width = 0.03, alpha = 0.5) +
+  theme_minimal()
+```
+
+```{r boxplot2}
+long_data %>% 
+  filter(time == 1) %>% 
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot() +
+  scale_x_discrete(labels = c("No", "Yes")) +
+  #I used colorbrewer2.0 to improve the colors
+  scale_fill_manual(values = c("#377eb8", "#e41a1c"), labels = c("Democrat", "Republican")) +
+  labs(x = "Cross-Party Contact", y = "Pre-test Polarization", fill = "Party ID") +
+  ggtitle("Effect of Minimal Intergroup Contact on Affective Partisan Polarization") +
+  theme_minimal()
+```
+
+```{r lineplot1}
+long_data %>% 
+  filter(partyid == 1, delib == 1, target == 2) %>% 
+  ggplot(aes(x = time, y = bias)) +
+  geom_line() +
+  geom_line(y = 50) +
+  labs(y = "Negative Attitudes", title = "Democrats Attitudes Towards Republicans Before & After Deliberation Exercise", caption = "50 = neutral attitude")
+
+long_data %>% 
+  filter(partyid == 1, delib == 1, target == 1) %>% 
+  ggplot(aes(x = time, y = bias)) +
+  geom_line() +
+  geom_line(y = 50) +
+  labs(y = "Negative Attitudes", title = "Democrats Attitudes Towards Democrats Before & After Deliberation Exercise", caption = "50 = is neutral attitude, ")
+
