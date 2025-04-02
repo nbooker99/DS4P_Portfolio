@@ -279,5 +279,5 @@ data_for_analyses <- qualtrics_data %>%
 ```{r}
 data_for_analyses <- data_for_analyses %>% 
   select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)
-write_sav(data_for_analyses, "data/data_for_analysis")
+write_sav(data_for_analyses, "data/data_for_analysis.sav")
 ```
