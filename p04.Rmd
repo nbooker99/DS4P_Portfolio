@@ -269,14 +269,15 @@ qualtrics_data <- qualtrics_data %>%
       ungroup()
 ```
 
-#Creating dataset for analyses, removing unneeded variables.
+#Creating dataset for analyses amd removing unneeded variables.
 ```{r}
 data_for_analyses <- qualtrics_data %>% 
   select(Gender_:PANAS__20, NFM:WellBeing)
 ```
 
-#Reordering variables.
+#Reordering variables and writing out dataset.
 ```{r}
 data_for_analyses <- data_for_analyses %>% 
   select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)
+write_sav(data_for_analyses, "data/data_for_analysis")
 ```

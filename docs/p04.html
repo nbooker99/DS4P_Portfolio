@@ -821,12 +821,13 @@ Well-Being variable.</p>
                            PosAffect_POMP, NegAffect_POMP_r), na.rm = TRUE)
       ) %&gt;%
       ungroup()</code></pre>
-<p>#Creating dataset for analyses, removing unneeded variables.</p>
+<p>#Creating dataset for analyses amd removing unneeded variables.</p>
 <pre class="r"><code>data_for_analyses &lt;- qualtrics_data %&gt;% 
   select(Gender_:PANAS__20, NFM:WellBeing)</code></pre>
-<p>#Reordering variables.</p>
+<p>#Reordering variables and writing out dataset.</p>
 <pre class="r"><code>data_for_analyses &lt;- data_for_analyses %&gt;% 
-  select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)</code></pre>
+  select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)
+write_sav(data_for_analyses, &quot;data/data_for_analysis&quot;)</code></pre>
 
 
 

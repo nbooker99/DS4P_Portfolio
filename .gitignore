@@ -41,6 +41,8 @@ vignettes/*.pdf
 # Specific keeps
 !.gitkeep
 
-#CSJAS Study 2 uncleaned data file
+#CSJAS Study data files
 data/Data from Qualtrics - CSJA Study 2_April 1, 2025_12.34.sav
 docs/data/Data from Qualtrics - CSJA Study 2_April 1, 2025_12.34.sav
+data/data_for_analysis
+docs/data/data_for_analysis
