@@ -1,5 +1,282 @@
 ---
-title: "Portfolio 4"
+title: "Data Cleaning"
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+> The goal of this project is to clean a dataset for one of my thesis studies. The dataset comes directly as it was downloaded from Qualtrics. I will clean the dataset by removing cases according to the criteria that I preregistered. I'll also combine item scores into variables and combine variables into a composite variable. The overall goal is to create a dataset that is ready for analyses.
+
+```{r}
+library(tidyverse)
+library(labelled)
+library(haven)
+qualtrics_data <- read_sav("data/Data from Qualtrics - CSJA Study 2_April 1, 2025_12.34.sav")
+```
+
+#n = 176
+#Expecting n = 150 valid cases because 150 credits were granted in SONA to respondents
+#who proceeded to the end of the survey.
+
+#Per preregistration, using only cases in which participants proceeded to the end of the survey.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  filter(Finished == 1)
+```
+#n = 159
+
+#Removing responses from SONA Admin which were used for technical troubleshooting.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  filter(id != "9244")
+```
+#n = 157
+
+#A technical issue in which the SONA study was not automatically granting participants credit 
+#when they completed the Qualtrics survey caused some participants to take the survey more 
+#than once. I'll now screen out duplicate survey responses based on the id variable.
+```{r}
+duplicate_cases <- qualtrics_data %>%
+  group_by(id) %>%
+  filter(n() > 1) %>%
+  arrange(id) %>% 
+  select(id, everything())
+duplicate_cases
+```
+
+#For the first set of duplicates, the response with ResponseId = R_1YeOsLfdtzWYfHD has duration of 12
+#seconds and did not proceed further than the eligibility question.
+#For the second set of duplicates, both are complete responses. I will remove the response that came later,
+#ResponseId = R_7n2BtvDKzUgs0xn.
+#Same with the third set. Removing R_1jcEdJAa4cI8FqL.
+#Same with the fourth set. Removing R_6dFnR4w70ypPgkp.
+#For the fifth set, R_5390VyhkwD8FFRI did not proceed further than the eligibility question.
+#For the sixth set, I will remove the later response, R_5fvLGGf4AbBIGX8.
+```{r}
+qualtrics_data <- qualtrics_data %>%
+  filter(!ResponseId %in% c(
+    "R_1YeOsLfdtzWYfHD",
+    "R_7n2BtvDKzUgs0xn", 
+    "R_1jcEdJAa4cI8FqL",
+    "R_6dFnR4w70ypPgkp",
+    "R_5390VyhkwD8FFRI",
+    "R_5fvLGGf4AbBIGX8"
+  ))
+```
+
+#n = 151.
+#Respondent with survey id 26063 answered no the eligibility question (US citizenship)
+#and was not permitted to proceed with the survey.
+```{r}
+qualtrics_data <- qualtrics_data %>%
+  filter(id != 26063)
+```
+
+#n = 150
+#Respondent with survey id 26230 did not answer any questions after the demographic 
+#secion of the survey, so they have no usable data and will be removed.
+```{r}
+qualtrics_data <- qualtrics_data %>%
+  filter(id != 26230)
+```
+
+#n = 149
+
+#Some items were mistakenly named as reversed items.
+```{r}
+qualtrics_data <- qualtrics_data %>%
+  rename(NFM8 = NFM8r, CSJAS22 = CSJAS22r)
+```
+
+
+#Per preregistration, screening for cases who selected all highest or all lowest
+#response options across all surveys for exclusion from analysis.
+```{r}
+#Calculating each participant's variance for each scale.
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    respvar_NFM = apply(select(., NFM1r:NFM10), 1, var, na.rm = TRUE),
+    respvar_CSJAS = apply(select(., CSJAS1:CSJAS28), 1, var, na.rm = TRUE),
+    respvar_RCI = apply(select(., RCI1:RCI10), 1, var, na.rm = TRUE),
+    respvar_EXPL = apply(select(., SEP:EL_), 1, var, na.rm = TRUE),
+    respvar_ANX = apply(select(., Anx__1:Anx__7), 1, var, na.rm = TRUE),
+    respvar_DEP = apply(select(., Dep_1:Dep_13), 1, var, na.rm = TRUE),
+    respvar_LS = apply(select(., LS_1:LS_5), 1, var, na.rm = TRUE),
+    respvar_PANAS = apply(select(., PANAS__1:PANAS__20), 1, var, na.rm = TRUE)
+  )
+#Identifying cases with no response variance across all scales.
+qualtrics_data %>%
+  filter(respvar_NFM == 0,
+         respvar_CSJAS == 0,
+         respvar_RCI == 0,
+         respvar_EXPL == 0,
+         respvar_ANX == 0,
+         respvar_DEP == 0,
+         respvar_LS == 0,
+         respvar_PANAS == 0)
+```
+
+#Zero cases with no response variance across all quesionnaires. No participants excluded.
+
+
+#Per preregistration, screening for cases with survey completion times below 3 standard
+#deviations of the mean survey completion time for exclusion from analysis.
+```{r}
+qualtrics_data %>%
+  mutate(duration_minutes = Duration__in_seconds_/60) %>% 
+  mutate(
+    duration_mean = mean(duration_minutes, na.rm = TRUE),
+    duration_sd = sd(duration_minutes, na.rm = TRUE),
+    z_duration_minutes = (duration_minutes - duration_mean)/duration_sd
+  ) %>% 
+  filter(z_duration_minutes <= -3)
+```
+
+#No participants excluded.
+
+#Storing the variable labels before transformation.
+```{r}
+var_labels <- var_label(qualtrics_data)
+val_labels <- val_labels(qualtrics_data)
+```
+
+
+#Reverse scoring the appropriate NFM items.
+```{r}
+  #Examining reversed items. (Scored 1-7.)
+qualtrics_data %>%
+  select(matches("^NFM.*r$")) %>%
+  names()
+print(qualtrics_data$NFM1r)
+print(qualtrics_data$NFM3r)
+print(qualtrics_data$NFM7r)
+  #Reversing.
+qualtrics_data <- qualtrics_data %>%
+  mutate(across(matches("^NFM.*r$"), ~8 - .))
+  #Verifying reversal.
+print(qualtrics_data$NFM1r)
+print(qualtrics_data$NFM3r)
+print(qualtrics_data$NFM7r)
+```
+
+#Creating NFM variable.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  mutate(NFM = rowMeans(across(NFM1r:NFM10), na.rm = TRUE))
+```
+
+#Reverse scoring the appropriate CSJAS items.
+```{r}
+  #Examining reversed items. (Scored 1-5.)
+qualtrics_data %>%
+  select(matches("^CSJAS.*r$")) %>%
+  names()
+csjas_reversed <- c("CSJAS4r", "CSJAS5r", "CSJAS7r", "CSJAS11r", "CSJAS14r", 
+                    "CSJAS15r", "CSJAS18r", "CSJAS20r", "CSJAS21r", "CSJAS23r",
+                    "CSJAS25r", "CSJAS26r")
+for(item in csjas_reversed) {
+  cat("\n--- Item:", item, "---\n")
+  print(qualtrics_data[[item]])
+}
+  #Reversing.
+qualtrics_data <- qualtrics_data %>%
+  mutate(across(matches("^CSJAS.*r$"), ~6 - .))
+  #Confirming reversal.
+print(qualtrics_data$CSJAS26r)
+```
+
+#Creating the CSJAS variable by combining the 7 final scale items determined in Study 1.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  mutate(CSJAS = rowMeans(across(c(CSJAS1, CSJAS2, CSJAS4r, CSJAS10, CSJAS15r, CSJAS17, CSJAS28)), na.rm = TRUE))
+```
+
+#Creating the Religious Commitment and Intrapersonal and Interpersonal subscales variables.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  mutate(
+    Relig = rowMeans(across(RCI1:RCI10), na.rm = TRUE),
+    Relig_inter = rowMeans(across(c(RCI2, RCI6, RCI9, RCI10)), na.rm = TRUE),
+    Relig_intra = rowMeans(across(c(RCI1, RCI3, RCI4, RCI5, RCI7, RCI8)), na.rm = TRUE)
+  )
+```
+
+#Creating Anxiety variable.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  mutate(
+    Anxiety = rowMeans(across(c(Anx__1:Anx__7)), na.rm = TRUE))
+```
+
+#Creating Depression variable.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  mutate(
+    Depression = rowMeans(across(c(Dep_1:Dep_13)), na.rm = TRUE))
+```
+
+#Creating Life Satisfaction variable.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  mutate(
+    LifeSatisf = rowMeans(across(c(LS_1:LS_5)), na.rm = TRUE))
+```
+
+#Creating Positive and Negative Affect variable.
+```{r}
+qualtrics_data <- qualtrics_data %>% 
+  rowwise() %>%
+  mutate(
+    PosAffect = rowMeans(across(c(PANAS__1, PANAS__3, PANAS__5, PANAS__9, PANAS__10, PANAS__12, 
+                    PANAS__14, PANAS__16, PANAS__17, PANAS__19)), 
+                      na.rm = TRUE),
+    NegAffect = rowMeans(across(c(PANAS__2, PANAS__4, PANAS__6, PANAS__7, PANAS__8, PANAS__11, 
+                    PANAS__13, PANAS__15, PANAS__18, PANAS__20))))
+```
+
+#Reapplying the variable and value labels that were lost from reverse scored items.
+```{r}
+var_label(qualtrics_data) <- var_labels
+val_labels(qualtrics_data) <- val_labels
+```
+
+
+#Per preregistration, performing a POMP transformations on all well-being variables and
+#taking their mean to create a composite Well-Being variable.
+```{r}
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    # Anxiety: scored from 1 to 4, with 4 indicating high anxiety
+    Anxiety_POMP = ((Anxiety - 1) / (4 - 1)) * 100,
+    # Depression: scored from 1 to 4, with 4 indicating high depression
+    Depression_POMP = ((Depression - 1) / (4 - 1)) * 100,
+    # Life Satisfaction: scored from 1 to 7, with 7 indicating high Life Satisfaction
+    LifeSatisf_POMP = ((LifeSatisf - 1) / (7 - 1)) * 100,
+    # Positive Affect: scored from 1 to 5, with 5 indicating high Positive Affect
+    PosAffect_POMP = ((PosAffect - 1) / (5 - 1)) * 100,
+    # Negative Affect: scored from 1 to 5, with 5 indicating high Negative Affect
+    NegAffect_POMP = ((NegAffect - 1) / (5 - 1)) * 100
+  ) %>%
+  # Creating reversed variables for Well-Being calculation
+  mutate(
+    # Reverse-scoring variables where higher scores should reflect lower well-being
+    Anxiety_POMP_r = 100 - Anxiety_POMP,
+    Depression_POMP_r = 100 - Depression_POMP,
+    NegAffect_POMP_r = 100 - NegAffect_POMP) %>% 
+    # Creating the Well-Being score
+    rowwise() %>%
+      mutate(
+        WellBeing = mean(c(Anxiety_POMP_r, Depression_POMP_r, LifeSatisf_POMP, 
+                           PosAffect_POMP, NegAffect_POMP_r), na.rm = TRUE)
+      ) %>%
+      ungroup()
+```
+
+#Creating dataset for analyses, removing unneeded variables.
+```{r}
+data_for_analyses <- qualtrics_data %>% 
+  select(Gender_:PANAS__20, NFM:WellBeing)
+```
+
+#Reordering variables.
+```{r}
+data_for_analyses <- data_for_analyses %>% 
+  select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)
+```
