@@ -1,46 +1,61 @@
 ---
 title: "Data Cleaning"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > The goal of this project is to clean a dataset for one of my thesis studies. The dataset comes directly as it was downloaded from Qualtrics. I will clean the dataset by removing cases according to the criteria that I preregistered. I'll also combine item scores into variables and combine variables into a composite variable. The overall goal is to create a dataset that is ready for analyses.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ```{r}
 library(tidyverse)
 library(labelled)
 library(haven)
 qualtrics_data <- read_sav("data/Data from Qualtrics - CSJA Study 2_April 1, 2025_12.34.sav")
-```
-
 #n = 176
 #Expecting n = 150 valid cases because 150 credits were granted in SONA to respondents
 #who proceeded to the end of the survey.
+```
 
-#Per preregistration, using only cases in which participants proceeded to the end of the survey.
+## Removing error cases
+
 ```{r}
+#Per preregistration, using only cases in which participants proceeded to the end of the survey.
 qualtrics_data <- qualtrics_data %>% 
   filter(Finished == 1)
-```
 #n = 159
+```
 
-#Removing responses from SONA Admin which were used for technical troubleshooting.
 ```{r}
+#Removing responses from SONA Admin which were used for technical troubleshooting.
 qualtrics_data <- qualtrics_data %>% 
   filter(id != "9244")
-```
 #n = 157
+```
 
+### Removing duplicates
+
+```{r}
 #A technical issue in which the SONA study was not automatically granting participants credit 
 #when they completed the Qualtrics survey caused some participants to take the survey more 
 #than once. I'll now screen out duplicate survey responses based on the id variable.
-```{r}
 duplicate_cases <- qualtrics_data %>%
   group_by(id) %>%
   filter(n() > 1) %>%
   arrange(id) %>% 
-  select(id, everything())
+  dplyr::select(id, dplyr::everything())
 duplicate_cases
 ```
+There are 6 sets of duplicate responses.
 
+```{r}
 #For the first set of duplicates, the response with ResponseId = R_1YeOsLfdtzWYfHD has duration of 12
 #seconds and did not proceed further than the eligibility question.
 #For the second set of duplicates, both are complete responses. I will remove the response that came later,
@@ -49,7 +64,6 @@ duplicate_cases
 #Same with the fourth set. Removing R_6dFnR4w70ypPgkp.
 #For the fifth set, R_5390VyhkwD8FFRI did not proceed further than the eligibility question.
 #For the sixth set, I will remove the later response, R_5fvLGGf4AbBIGX8.
-```{r}
 qualtrics_data <- qualtrics_data %>%
   filter(!ResponseId %in% c(
     "R_1YeOsLfdtzWYfHD",
@@ -59,47 +73,49 @@ qualtrics_data <- qualtrics_data %>%
     "R_5390VyhkwD8FFRI",
     "R_5fvLGGf4AbBIGX8"
   ))
+#n = 151.
 ```
 
-#n = 151.
-#Respondent with survey id 26063 answered no the eligibility question (US citizenship)
-#and was not permitted to proceed with the survey.
 ```{r}
+#Respondent with survey id 26063 answered no the eligibility question (US citizenship)
+#and was not permitted to proceed with the survey. Removing.
 qualtrics_data <- qualtrics_data %>%
   filter(id != 26063)
+#n = 150
 ```
 
-#n = 150
+```{r}
 #Respondent with survey id 26230 did not answer any questions after the demographic 
 #secion of the survey, so they have no usable data and will be removed.
-```{r}
 qualtrics_data <- qualtrics_data %>%
   filter(id != 26230)
+#n = 149
 ```
 
-#n = 149
 
-#Some items were mistakenly named as reversed items.
 ```{r}
+#Some items were mistakenly named as reversed items. Fixing the names.
 qualtrics_data <- qualtrics_data %>%
   rename(NFM8 = NFM8r, CSJAS22 = CSJAS22r)
 ```
 
+## Screening out cases based on preregistration criteria
 
+```{r}
 #Per preregistration, screening for cases who selected all highest or all lowest
 #response options across all surveys for exclusion from analysis.
-```{r}
+
 #Calculating each participant's variance for each scale.
 qualtrics_data <- qualtrics_data %>%
   mutate(
-    respvar_NFM = apply(select(., NFM1r:NFM10), 1, var, na.rm = TRUE),
-    respvar_CSJAS = apply(select(., CSJAS1:CSJAS28), 1, var, na.rm = TRUE),
-    respvar_RCI = apply(select(., RCI1:RCI10), 1, var, na.rm = TRUE),
-    respvar_EXPL = apply(select(., SEP:EL_), 1, var, na.rm = TRUE),
-    respvar_ANX = apply(select(., Anx__1:Anx__7), 1, var, na.rm = TRUE),
-    respvar_DEP = apply(select(., Dep_1:Dep_13), 1, var, na.rm = TRUE),
-    respvar_LS = apply(select(., LS_1:LS_5), 1, var, na.rm = TRUE),
-    respvar_PANAS = apply(select(., PANAS__1:PANAS__20), 1, var, na.rm = TRUE)
+    respvar_NFM = apply(dplyr::select(., NFM1r:NFM10), 1, var, na.rm = TRUE),
+    respvar_CSJAS = apply(dplyr::select(., CSJAS1:CSJAS28), 1, var, na.rm = TRUE),
+    respvar_RCI = apply(dplyr::select(., RCI1:RCI10), 1, var, na.rm = TRUE),
+    respvar_EXPL = apply(dplyr::select(., SEP:EL_), 1, var, na.rm = TRUE),
+    respvar_ANX = apply(dplyr::select(., Anx__1:Anx__7), 1, var, na.rm = TRUE),
+    respvar_DEP = apply(dplyr::select(., Dep_1:Dep_13), 1, var, na.rm = TRUE),
+    respvar_LS = apply(dplyr::select(., LS_1:LS_5), 1, var, na.rm = TRUE),
+    respvar_PANAS = apply(dplyr::select(., PANAS__1:PANAS__20), 1, var, na.rm = TRUE)
   )
 #Identifying cases with no response variance across all scales.
 qualtrics_data %>%
@@ -111,14 +127,12 @@ qualtrics_data %>%
          respvar_DEP == 0,
          respvar_LS == 0,
          respvar_PANAS == 0)
+#Zero cases with no response variance across all quesionnaires. No participants excluded.
 ```
 
-#Zero cases with no response variance across all quesionnaires. No participants excluded.
-
-
+```{r}
 #Per preregistration, screening for cases with survey completion times below 3 standard
 #deviations of the mean survey completion time for exclusion from analysis.
-```{r}
 qualtrics_data %>%
   mutate(duration_minutes = Duration__in_seconds_/60) %>% 
   mutate(
@@ -127,46 +141,48 @@ qualtrics_data %>%
     z_duration_minutes = (duration_minutes - duration_mean)/duration_sd
   ) %>% 
   filter(z_duration_minutes <= -3)
+#No participants excluded.
 ```
 
-#No participants excluded.
+## Combining scale item scores into variable scores
 
-#Storing the variable labels before transformation.
 ```{r}
+#Storing the variable labels before transformation.
 var_labels <- var_label(qualtrics_data)
 val_labels <- val_labels(qualtrics_data)
 ```
 
+### NFM
 
-#Reverse scoring the appropriate NFM items.
 ```{r}
-  #Examining reversed items. (Scored 1-7.)
+#Reverse scoring the appropriate NFM items.
+#Examining reversed items. (Scored 1-7.)
 qualtrics_data %>%
-  select(matches("^NFM.*r$")) %>%
+  dplyr::select(matches("^NFM.*r$")) %>%
   names()
 print(qualtrics_data$NFM1r)
 print(qualtrics_data$NFM3r)
 print(qualtrics_data$NFM7r)
-  #Reversing.
+#Reversing.
 qualtrics_data <- qualtrics_data %>%
   mutate(across(matches("^NFM.*r$"), ~8 - .))
-  #Verifying reversal.
+#Verifying reversal.
 print(qualtrics_data$NFM1r)
 print(qualtrics_data$NFM3r)
 print(qualtrics_data$NFM7r)
-```
 
 #Creating NFM variable.
-```{r}
 qualtrics_data <- qualtrics_data %>% 
   mutate(NFM = rowMeans(across(NFM1r:NFM10), na.rm = TRUE))
 ```
 
-#Reverse scoring the appropriate CSJAS items.
+### CSJAS
+
 ```{r}
-  #Examining reversed items. (Scored 1-5.)
+#Reverse scoring the appropriate CSJAS items.
+#Examining reversed items. (Scored 1-5.)
 qualtrics_data %>%
-  select(matches("^CSJAS.*r$")) %>%
+  dplyr::select(matches("^CSJAS.*r$")) %>%
   names()
 csjas_reversed <- c("CSJAS4r", "CSJAS5r", "CSJAS7r", "CSJAS11r", "CSJAS14r", 
                     "CSJAS15r", "CSJAS18r", "CSJAS20r", "CSJAS21r", "CSJAS23r",
@@ -175,21 +191,24 @@ for(item in csjas_reversed) {
   cat("\n--- Item:", item, "---\n")
   print(qualtrics_data[[item]])
 }
-  #Reversing.
+#Reversing.
 qualtrics_data <- qualtrics_data %>%
   mutate(across(matches("^CSJAS.*r$"), ~6 - .))
-  #Confirming reversal.
+#Confirming reversal.
 print(qualtrics_data$CSJAS26r)
-```
 
 #Creating the CSJAS variable by combining the 7 final scale items determined in Study 1.
-```{r}
 qualtrics_data <- qualtrics_data %>% 
-  mutate(CSJAS = rowMeans(across(c(CSJAS1, CSJAS2, CSJAS4r, CSJAS10, CSJAS15r, CSJAS17, CSJAS28)), na.rm = TRUE))
+  mutate(CSJAS = rowMeans(across(c(CSJAS1, CSJAS2, CSJAS4r, CSJAS10, CSJAS15r, CSJAS17, CSJAS28)),
+                          na.rm = TRUE)) %>% 
+#Rescoring to be 0-4 instead of 1-5 (to match Lahtinen).
+  mutate(CSJAS = CSJAS - 1)
 ```
 
-#Creating the Religious Commitment and Intrapersonal and Interpersonal subscales variables.
+### Relig
+
 ```{r}
+#Creating the Religious Commitment variable and Intrapersonal and Interpersonal subscale variables.
 qualtrics_data <- qualtrics_data %>% 
   mutate(
     Relig = rowMeans(across(RCI1:RCI10), na.rm = TRUE),
@@ -198,49 +217,40 @@ qualtrics_data <- qualtrics_data %>%
   )
 ```
 
-#Creating Anxiety variable.
+### WB Variables
+
 ```{r}
+#Creating Anxiety variable.
 qualtrics_data <- qualtrics_data %>% 
   mutate(
     Anxiety = rowMeans(across(c(Anx__1:Anx__7)), na.rm = TRUE))
-```
 
 #Creating Depression variable.
-```{r}
 qualtrics_data <- qualtrics_data %>% 
   mutate(
     Depression = rowMeans(across(c(Dep_1:Dep_13)), na.rm = TRUE))
-```
 
 #Creating Life Satisfaction variable.
-```{r}
 qualtrics_data <- qualtrics_data %>% 
   mutate(
     LifeSatisf = rowMeans(across(c(LS_1:LS_5)), na.rm = TRUE))
-```
 
 #Creating Positive and Negative Affect variable.
-```{r}
 qualtrics_data <- qualtrics_data %>% 
   rowwise() %>%
   mutate(
     PosAffect = rowMeans(across(c(PANAS__1, PANAS__3, PANAS__5, PANAS__9, PANAS__10, PANAS__12, 
-                    PANAS__14, PANAS__16, PANAS__17, PANAS__19)), 
-                      na.rm = TRUE),
+                                  PANAS__14, PANAS__16, PANAS__17, PANAS__19)), 
+                         na.rm = TRUE),
     NegAffect = rowMeans(across(c(PANAS__2, PANAS__4, PANAS__6, PANAS__7, PANAS__8, PANAS__11, 
-                    PANAS__13, PANAS__15, PANAS__18, PANAS__20))))
+                                  PANAS__13, PANAS__15, PANAS__18, PANAS__20))))
 ```
 
-#Reapplying the variable and value labels that were lost from reverse scored items.
+### WB
+
 ```{r}
-var_label(qualtrics_data) <- var_labels
-val_labels(qualtrics_data) <- val_labels
-```
-
-
 #Per preregistration, performing a POMP transformations on all well-being variables and
 #taking their mean to create a composite Well-Being variable.
-```{r}
 qualtrics_data <- qualtrics_data %>%
   mutate(
     # Anxiety: scored from 1 to 4, with 4 indicating high anxiety
@@ -260,24 +270,251 @@ qualtrics_data <- qualtrics_data %>%
     Anxiety_POMP_r = 100 - Anxiety_POMP,
     Depression_POMP_r = 100 - Depression_POMP,
     NegAffect_POMP_r = 100 - NegAffect_POMP) %>% 
-    # Creating the Well-Being score
-    rowwise() %>%
-      mutate(
-        WellBeing = mean(c(Anxiety_POMP_r, Depression_POMP_r, LifeSatisf_POMP, 
-                           PosAffect_POMP, NegAffect_POMP_r), na.rm = TRUE)
-      ) %>%
-      ungroup()
+  # Creating the Well-Being score
+  rowwise() %>%
+  mutate(
+    WellBeing = mean(c(Anxiety_POMP_r, Depression_POMP_r, LifeSatisf_POMP, 
+                       PosAffect_POMP, NegAffect_POMP_r), na.rm = TRUE)
+  ) %>%
+  ungroup()
 ```
 
-#Creating dataset for analyses amd removing unneeded variables.
+## Removing WB Outlier
+
 ```{r}
-data_for_analyses <- qualtrics_data %>% 
-  select(Gender_:PANAS__20, NFM:WellBeing)
+#DEVIATING FROM PREREGISTRATION
+# Create z-score version of WellBeing
+WB_outlier <- qualtrics_data %>%
+  mutate(WellBeing_z = abs(scale(WellBeing)[,1])) %>% 
+  dplyr::select(WellBeing_z, id) %>% 
+  arrange(desc(WellBeing_z))
+WB_outlier
+#During analyses, I discovered that this participant was dramatically skewing results.
+#Excluding this case.
+qualtrics_data <- qualtrics_data %>%
+  filter(id != 26256)
+# n = 148
 ```
 
+## Dummy Coding Demographic Variables
+
+Creating dummy variables where necessary for demographic variables which will be used as control variables in analyses.
+
+For categorical variables, categories that comprise less than 5% of the sample will be combined.
+
+### Gender
+
+```{r}
+#Gender
+qualtrics_data %>% 
+  count(Gender_)
+#Gender has possible values of 1 = male, 2 = female, or 3 = Nonbinary / Third gender.
+#There are no cases of Gender = 3 in the dataset, so Gender can be added to the regression 
+  #analyses with no need for dummy coding.
+```
+
+
+### Sexual Orientation
+```{r}
+qualtrics_data %>% 
+  count(SexOrient_) %>% 
+  mutate(perc = n/1.49)
+#Sexual Orientation has possible values of 1 = heterosexual, 2 = homosexual, 3 = bisexual, 
+  #4 = other, and 5 = prefer not to say.
+#There are 140 cases of heterosexual, 2 cases of homosexual, and 7 cases of bisexual.
+#Creating dummy variable for Sexual Orientation, combining homosexual and bisexual since they 
+  #make up only 1.3% and 4.7% percent of the sample, respectively.
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    SexOrien_dummy = as.numeric(SexOrient_ %in% c(2, 3))
+  )
+qualtrics_data %>% 
+  count(SexOrien_dummy)%>% 
+  mutate(perc = n/1.49)
+```
+
+### Race
+```{r}
+qualtrics_data %>% 
+  count(Race_) %>% 
+  mutate(perc = n/1.49)
+#Create dummy variables for Race categories.
+#Using White (7; 75.2% of sample) as the reference category.
+#Combining Black (3; 4.7%), Middle Eastern or N. African (5; .7%), and Other (8; 2.7%)
+  #into Black_or_Other dummy variable.
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    Asian_dummy = as.numeric(Race_ == 2),
+    Black_or_Other_dummy = as.numeric(Race_ %in% c(3, 5, 8)),
+    Hispanic_dummy = as.numeric(Race_ == 4),
+  )
+qualtrics_data %>% 
+  count(Black_or_Other_dummy)%>% 
+  mutate(perc = n/1.49)
+```
+
+### Age
+```{r}
+qualtrics_data <- qualtrics_data %>%
+  mutate(Age = as.numeric(Age))
+```
+
+### Major
+```{r}
+#Values for the (academic) Major variable came from a textbox in the survey (this was a mistake). 
+#I worked with Claude.ai to create this code to sort cases into major cateogories.
+# This code will create two new variables: Major_Category and Major_Category2
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    # Create Major_Category with 14 categories (including Uncategorized)
+    Major_Category = case_when(
+      # Category 1 - Economics
+      str_detect(tolower(Major_), "^economics|^econ|^mathematical economics") ~ 1,
+      
+      # Category 2 - Political Science
+      str_detect(tolower(Major_), "^politic|^international politics|^poly sci|^politics|^yes - politics") ~ 2,
+      
+      # Category 3 - Psychology
+      str_detect(tolower(Major_), "^psychology|^university. psychology") |
+        Major_ %in% c("double major in psychology and sociology", "Psycholgy/Communications/Marketing") ~ 3,
+      
+      # Category 4 - Sociology
+      str_detect(tolower(Major_), "^sociology") ~ 4,
+      
+      # Category 5 - Business
+      str_detect(tolower(Major_), "^business|^bem|^finance|^accounting|^acconting|^mathematical business") |
+        Major_ %in% c("yes, business", "Business/Psych", "Finance and Computer Science", "Intended Acconting") ~ 5,
+      
+      # Category 6 - STEM - Biological/Medical
+      str_detect(tolower(Major_), "^biology|^biochemistry|^pre-med|^pre med") |
+        Major_ %in% c("medicinal chemistry", "biochemistry and molecular biology", 
+                     "Biology B.S.", "Biochemistry and African-American Studies", 
+                     "biology/psychology", "Pre-medicine") ~ 6,
+      
+      # Category 7 - Health & Exercise Science
+      str_detect(tolower(Major_), "^health|^hes") ~ 7,
+      
+      # Category 8 - Communications
+      str_detect(tolower(Major_), "^communication") ~ 8,
+      
+      # Category 9 - Undecided
+      str_detect(tolower(Major_), "^undecided|^undeclared|^tbd|^n/a|^unsure") |
+        Major_ == "Yes and my major is undecided" ~ 9,
+      
+      # Category 10 - STEM - Physical Sciences
+      str_detect(tolower(Major_), "^chemistry|^engineering") |
+        Major_ %in% c("Computer Science", "Computer Science & Finance") ~ 10,
+      
+      # Category 13 - Education
+      str_detect(tolower(Major_), "^education|^elementary education") |
+        Major_ == "Mathematics education" ~ 13,
+      
+      # Category 11 - STEM - Mathematics
+      str_detect(tolower(Major_), "^math|^applied math") |
+        Major_ == "Statistics and Psychology" ~ 11,
+      
+      # Category 12 - Humanities
+      str_detect(tolower(Major_), "^english|^history|^theatre|^philosphy|^philosophy|^studio art") ~ 12,
+      
+      # Category 99 - Uncategorized
+      TRUE ~ 99
+    ),
+    
+    # Create Major_Category2 with 5 consolidated categories
+    Major_Category2 = case_when(
+      # Category 1 - Business & Economics
+      Major_Category %in% c(1, 5) ~ 1,
+      
+      # Category 2 - Social Sciences
+      Major_Category %in% c(2, 3, 4, 8) ~ 2,
+      
+      # Category 3 - STEM
+      Major_Category %in% c(6, 7, 10, 11) ~ 3,
+      
+      # Category 4 - Humanities & Education
+      Major_Category %in% c(12, 13) ~ 4,
+      
+      # Category 5 - Other/Undecided
+      Major_Category %in% c(9, 99) ~ 5,
+      
+      TRUE ~ NA_real_  # Catch any unforeseen cases
+    )
+  )
+
+# Add labels to the categories (optional)
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    Major_Category_Label = case_when(
+      Major_Category == 1 ~ "Economics",
+      Major_Category == 2 ~ "Political Science",
+      Major_Category == 3 ~ "Psychology",
+      Major_Category == 4 ~ "Sociology",
+      Major_Category == 5 ~ "Business",
+      Major_Category == 6 ~ "STEM - Biological/Medical",
+      Major_Category == 7 ~ "Health & Exercise Science",
+      Major_Category == 8 ~ "Communications",
+      Major_Category == 9 ~ "Undecided",
+      Major_Category == 10 ~ "STEM - Physical Sciences",
+      Major_Category == 11 ~ "STEM - Mathematics",
+      Major_Category == 12 ~ "Humanities",
+      Major_Category == 13 ~ "Education",
+      Major_Category == 99 ~ "Uncategorized",
+      TRUE ~ "Unknown"
+    ),
+    
+    Major_Category2_Label = case_when(
+      Major_Category2 == 1 ~ "Business & Economics",
+      Major_Category2 == 2 ~ "Social Sciences",
+      Major_Category2 == 3 ~ "STEM",
+      Major_Category2 == 4 ~ "Humanities & Education",
+      Major_Category2 == 5 ~ "Other/Undecided",
+      TRUE ~ "Unknown"
+    )
+  )
+#Examining how majors were sorted to make any adjustments.
+majors<- qualtrics_data %>% 
+  dplyr::select(Major_, Major_Category, Major_Category_Label, Major_Category2, Major_Category2_Label) %>% 
+  arrange(Major_Category2, Major_)
+#Creating dummy variables for major.
+qualtrics_data %>% 
+  count(Major_Category2_Label) %>% 
+  mutate(perc = n/1.49)
+#Using 'Business & Economics' (1; most numerous) as the reference category.
+qualtrics_data <- qualtrics_data %>%
+  mutate(
+    SocScience_dummy = as.numeric(Major_Category2 == 2),
+    STEM_dummy = as.numeric(Major_Category2 == 3),
+    Hum_Educ_dummy = as.numeric(Major_Category2 == 4),
+    Other_Undec_dummy = as.numeric(Major_Category2 == 5),
+  )
+```
+
+```{r}
+#Reapplying the variable and value labels that were lost from reverse scored items.
+var_label(qualtrics_data) <- var_labels
+val_labels(qualtrics_data) <- val_labels
+```
+
+```{r}
+#Renaming some variables.
+qualtrics_data <- qualtrics_data %>%
+  rename(Gender = Gender_, SexOrien = SexOrient_, Race = Race_,
+         Major = Major_, PolLib = PolLib_)
+```
+
+## Creating Dataset for Analysis
+
+```{r}
+#Creating dataset for analysis and removing unneeded variables.
+data_for_analysis <- qualtrics_data %>% 
+  dplyr::select(Gender:PANAS__20, NFM:Other_Undec_dummy)
+```
+
+```{r}
 #Reordering variables and writing out dataset.
-```{r}
-data_for_analyses <- data_for_analyses %>% 
-  select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)
-write_sav(data_for_analyses, "data/data_for_analysis.sav")
+data_for_analysis <- data_for_analysis %>% 
+  dplyr::select(Gender:Age, Major_Category2_Label, PolLib, NFM:WellBeing, NFM1r:PANAS__20,
+         Major, Major_Category, Major_Category2, Major_Category_Label, 
+         SexOrien_dummy:Hispanic_dummy, SocScience_dummy:Other_Undec_dummy)
+write_sav(data_for_analysis, "data/data_for_analysis.sav")
 ```

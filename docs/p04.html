@@ -16,7 +16,7 @@
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -29,7 +29,11 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
@@ -216,7 +220,73 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
 
 
 
@@ -226,6 +296,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -288,6 +368,14 @@ $(document).ready(function () {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Data Cleaning</h1>
@@ -309,36 +397,37 @@ create a dataset that is ready for analyses.</p>
 ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
 ## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
 ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-## ✔ purrr     1.0.2     
+## ✔ purrr     1.0.4     
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
 ## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 <pre class="r"><code>library(labelled)
 library(haven)
-qualtrics_data &lt;- read_sav(&quot;data/Data from Qualtrics - CSJA Study 2_April 1, 2025_12.34.sav&quot;)</code></pre>
-<p>#n = 176 #Expecting n = 150 valid cases because 150 credits were
-granted in SONA to respondents #who proceeded to the end of the
-survey.</p>
-<p>#Per preregistration, using only cases in which participants
-proceeded to the end of the survey.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
-  filter(Finished == 1)</code></pre>
-<p>#n = 159</p>
-<p>#Removing responses from SONA Admin which were used for technical
-troubleshooting.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
-  filter(id != &quot;9244&quot;)</code></pre>
-<p>#n = 157</p>
-<p>#A technical issue in which the SONA study was not automatically
-granting participants credit #when they completed the Qualtrics survey
-caused some participants to take the survey more #than once. I’ll now
-screen out duplicate survey responses based on the id variable.</p>
-<pre class="r"><code>duplicate_cases &lt;- qualtrics_data %&gt;%
+qualtrics_data &lt;- read_sav(&quot;data/Data from Qualtrics - CSJA Study 2_April 1, 2025_12.34.sav&quot;)
+#n = 176
+#Expecting n = 150 valid cases because 150 credits were granted in SONA to respondents
+#who proceeded to the end of the survey.</code></pre>
+<div id="removing-error-cases" class="section level2">
+<h2>Removing error cases</h2>
+<pre class="r"><code>#Per preregistration, using only cases in which participants proceeded to the end of the survey.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
+  filter(Finished == 1)
+#n = 159</code></pre>
+<pre class="r"><code>#Removing responses from SONA Admin which were used for technical troubleshooting.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
+  filter(id != &quot;9244&quot;)
+#n = 157</code></pre>
+<div id="removing-duplicates" class="section level3">
+<h3>Removing duplicates</h3>
+<pre class="r"><code>#A technical issue in which the SONA study was not automatically granting participants credit 
+#when they completed the Qualtrics survey caused some participants to take the survey more 
+#than once. I&#39;ll now screen out duplicate survey responses based on the id variable.
+duplicate_cases &lt;- qualtrics_data %&gt;%
   group_by(id) %&gt;%
   filter(n() &gt; 1) %&gt;%
   arrange(id) %&gt;% 
-  select(id, everything())
+  dplyr::select(id, dplyr::everything())
 duplicate_cases</code></pre>
 <pre><code>## # A tibble: 12 × 124
 ## # Groups:   id [6]
@@ -363,16 +452,16 @@ duplicate_cases</code></pre>
 ## #   UserLanguage &lt;chr&gt;, Eligibility &lt;dbl+lbl&gt;, Instr_ &lt;dbl+lbl&gt;,
 ## #   InformedConsent_ &lt;dbl+lbl&gt;, Gender_ &lt;dbl+lbl&gt;, SexOrient_ &lt;dbl+lbl&gt;,
 ## #   Race_ &lt;dbl+lbl&gt;, Age &lt;chr&gt;, Major_ &lt;chr&gt;, PolLib_ &lt;dbl+lbl&gt;, …</code></pre>
-<p>#For the first set of duplicates, the response with ResponseId =
-R_1YeOsLfdtzWYfHD has duration of 12 #seconds and did not proceed
-further than the eligibility question. #For the second set of
-duplicates, both are complete responses. I will remove the response that
-came later, #ResponseId = R_7n2BtvDKzUgs0xn. #Same with the third set.
-Removing R_1jcEdJAa4cI8FqL. #Same with the fourth set. Removing
-R_6dFnR4w70ypPgkp. #For the fifth set, R_5390VyhkwD8FFRI did not proceed
-further than the eligibility question. #For the sixth set, I will remove
-the later response, R_5fvLGGf4AbBIGX8.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;%
+<p>There are 6 sets of duplicate responses.</p>
+<pre class="r"><code>#For the first set of duplicates, the response with ResponseId = R_1YeOsLfdtzWYfHD has duration of 12
+#seconds and did not proceed further than the eligibility question.
+#For the second set of duplicates, both are complete responses. I will remove the response that came later,
+#ResponseId = R_7n2BtvDKzUgs0xn.
+#Same with the third set. Removing R_1jcEdJAa4cI8FqL.
+#Same with the fourth set. Removing R_6dFnR4w70ypPgkp.
+#For the fifth set, R_5390VyhkwD8FFRI did not proceed further than the eligibility question.
+#For the sixth set, I will remove the later response, R_5fvLGGf4AbBIGX8.
+qualtrics_data &lt;- qualtrics_data %&gt;%
   filter(!ResponseId %in% c(
     &quot;R_1YeOsLfdtzWYfHD&quot;,
     &quot;R_7n2BtvDKzUgs0xn&quot;, 
@@ -380,35 +469,40 @@ the later response, R_5fvLGGf4AbBIGX8.</p>
     &quot;R_6dFnR4w70ypPgkp&quot;,
     &quot;R_5390VyhkwD8FFRI&quot;,
     &quot;R_5fvLGGf4AbBIGX8&quot;
-  ))</code></pre>
-<p>#n = 151. #Respondent with survey id 26063 answered no the
-eligibility question (US citizenship) #and was not permitted to proceed
-with the survey.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;%
-  filter(id != 26063)</code></pre>
-<p>#n = 150 #Respondent with survey id 26230 did not answer any
-questions after the demographic #secion of the survey, so they have no
-usable data and will be removed.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;%
-  filter(id != 26230)</code></pre>
-<p>#n = 149</p>
-<p>#Some items were mistakenly named as reversed items.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;%
+  ))
+#n = 151.</code></pre>
+<pre class="r"><code>#Respondent with survey id 26063 answered no the eligibility question (US citizenship)
+#and was not permitted to proceed with the survey. Removing.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  filter(id != 26063)
+#n = 150</code></pre>
+<pre class="r"><code>#Respondent with survey id 26230 did not answer any questions after the demographic 
+#secion of the survey, so they have no usable data and will be removed.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  filter(id != 26230)
+#n = 149</code></pre>
+<pre class="r"><code>#Some items were mistakenly named as reversed items. Fixing the names.
+qualtrics_data &lt;- qualtrics_data %&gt;%
   rename(NFM8 = NFM8r, CSJAS22 = CSJAS22r)</code></pre>
-<p>#Per preregistration, screening for cases who selected all highest or
-all lowest #response options across all surveys for exclusion from
-analysis.</p>
-<pre class="r"><code>#Calculating each participant&#39;s variance for each scale.
+</div>
+</div>
+<div id="screening-out-cases-based-on-preregistration-criteria"
+class="section level2">
+<h2>Screening out cases based on preregistration criteria</h2>
+<pre class="r"><code>#Per preregistration, screening for cases who selected all highest or all lowest
+#response options across all surveys for exclusion from analysis.
+
+#Calculating each participant&#39;s variance for each scale.
 qualtrics_data &lt;- qualtrics_data %&gt;%
   mutate(
-    respvar_NFM = apply(select(., NFM1r:NFM10), 1, var, na.rm = TRUE),
-    respvar_CSJAS = apply(select(., CSJAS1:CSJAS28), 1, var, na.rm = TRUE),
-    respvar_RCI = apply(select(., RCI1:RCI10), 1, var, na.rm = TRUE),
-    respvar_EXPL = apply(select(., SEP:EL_), 1, var, na.rm = TRUE),
-    respvar_ANX = apply(select(., Anx__1:Anx__7), 1, var, na.rm = TRUE),
-    respvar_DEP = apply(select(., Dep_1:Dep_13), 1, var, na.rm = TRUE),
-    respvar_LS = apply(select(., LS_1:LS_5), 1, var, na.rm = TRUE),
-    respvar_PANAS = apply(select(., PANAS__1:PANAS__20), 1, var, na.rm = TRUE)
+    respvar_NFM = apply(dplyr::select(., NFM1r:NFM10), 1, var, na.rm = TRUE),
+    respvar_CSJAS = apply(dplyr::select(., CSJAS1:CSJAS28), 1, var, na.rm = TRUE),
+    respvar_RCI = apply(dplyr::select(., RCI1:RCI10), 1, var, na.rm = TRUE),
+    respvar_EXPL = apply(dplyr::select(., SEP:EL_), 1, var, na.rm = TRUE),
+    respvar_ANX = apply(dplyr::select(., Anx__1:Anx__7), 1, var, na.rm = TRUE),
+    respvar_DEP = apply(dplyr::select(., Dep_1:Dep_13), 1, var, na.rm = TRUE),
+    respvar_LS = apply(dplyr::select(., LS_1:LS_5), 1, var, na.rm = TRUE),
+    respvar_PANAS = apply(dplyr::select(., PANAS__1:PANAS__20), 1, var, na.rm = TRUE)
   )
 #Identifying cases with no response variance across all scales.
 qualtrics_data %&gt;%
@@ -428,12 +522,10 @@ qualtrics_data %&gt;%
 ## #   ExternalReference &lt;chr&gt;, LocationLatitude &lt;chr&gt;, LocationLongitude &lt;chr&gt;,
 ## #   DistributionChannel &lt;chr&gt;, UserLanguage &lt;chr&gt;, Eligibility &lt;dbl+lbl&gt;,
 ## #   Instr_ &lt;dbl+lbl&gt;, InformedConsent_ &lt;dbl+lbl&gt;, Gender_ &lt;dbl+lbl&gt;, …</code></pre>
-<p>#Zero cases with no response variance across all quesionnaires. No
-participants excluded.</p>
-<p>#Per preregistration, screening for cases with survey completion
-times below 3 standard #deviations of the mean survey completion time
-for exclusion from analysis.</p>
-<pre class="r"><code>qualtrics_data %&gt;%
+<pre class="r"><code>#Zero cases with no response variance across all quesionnaires. No participants excluded.</code></pre>
+<pre class="r"><code>#Per preregistration, screening for cases with survey completion times below 3 standard
+#deviations of the mean survey completion time for exclusion from analysis.
+qualtrics_data %&gt;%
   mutate(duration_minutes = Duration__in_seconds_/60) %&gt;% 
   mutate(
     duration_mean = mean(duration_minutes, na.rm = TRUE),
@@ -449,14 +541,20 @@ for exclusion from analysis.</p>
 ## #   ExternalReference &lt;chr&gt;, LocationLatitude &lt;chr&gt;, LocationLongitude &lt;chr&gt;,
 ## #   DistributionChannel &lt;chr&gt;, UserLanguage &lt;chr&gt;, Eligibility &lt;dbl+lbl&gt;,
 ## #   Instr_ &lt;dbl+lbl&gt;, InformedConsent_ &lt;dbl+lbl&gt;, Gender_ &lt;dbl+lbl&gt;, …</code></pre>
-<p>#No participants excluded.</p>
-<p>#Storing the variable labels before transformation.</p>
-<pre class="r"><code>var_labels &lt;- var_label(qualtrics_data)
+<pre class="r"><code>#No participants excluded.</code></pre>
+</div>
+<div id="combining-scale-item-scores-into-variable-scores"
+class="section level2">
+<h2>Combining scale item scores into variable scores</h2>
+<pre class="r"><code>#Storing the variable labels before transformation.
+var_labels &lt;- var_label(qualtrics_data)
 val_labels &lt;- val_labels(qualtrics_data)</code></pre>
-<p>#Reverse scoring the appropriate NFM items.</p>
-<pre class="r"><code>  #Examining reversed items. (Scored 1-7.)
+<div id="nfm" class="section level3">
+<h3>NFM</h3>
+<pre class="r"><code>#Reverse scoring the appropriate NFM items.
+#Examining reversed items. (Scored 1-7.)
 qualtrics_data %&gt;%
-  select(matches(&quot;^NFM.*r$&quot;)) %&gt;%
+  dplyr::select(matches(&quot;^NFM.*r$&quot;)) %&gt;%
   names()</code></pre>
 <pre><code>## [1] &quot;NFM1r&quot; &quot;NFM3r&quot; &quot;NFM7r&quot;</code></pre>
 <pre class="r"><code>print(qualtrics_data$NFM1r)</code></pre>
@@ -510,10 +608,10 @@ qualtrics_data %&gt;%
 ##      5             slightly agree
 ##      6                      agree
 ##      7             strongly agree</code></pre>
-<pre class="r"><code>  #Reversing.
+<pre class="r"><code>#Reversing.
 qualtrics_data &lt;- qualtrics_data %&gt;%
   mutate(across(matches(&quot;^NFM.*r$&quot;), ~8 - .))
-  #Verifying reversal.
+#Verifying reversal.
 print(qualtrics_data$NFM1r)</code></pre>
 <pre><code>##   [1] 2 5 2 6 6 3 3 2 5 4 3 3 6 5 5 5 5 5 6 2 6 7 6 3 4 6 2 2 6 5 6 5 6 2 5 7 4
 ##  [38] 3 7 6 6 4 7 5 4 6 5 5 6 4 2 2 5 3 6 4 6 2 6 6 3 7 6 6 5 5 4 5 6 4 5 6 5 6
@@ -532,13 +630,16 @@ print(qualtrics_data$NFM1r)</code></pre>
 ##  [75] 4 6 4 4 7 6 4 6 2 5 5 4 3 4 2 3 5 2 4 5 6 4 5 5 4 5 4 3 5 2 3 2 5 4 3 2 2
 ## [112] 3 3 3 3 4 3 2 3 1 2 2 5 4 5 4 2 2 5 4 5 6 4 2 4 6 2 2 4 5 1 3 5 4 4 4 3 4
 ## [149] 4</code></pre>
-<p>#Creating NFM variable.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
+<pre class="r"><code>#Creating NFM variable.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
   mutate(NFM = rowMeans(across(NFM1r:NFM10), na.rm = TRUE))</code></pre>
-<p>#Reverse scoring the appropriate CSJAS items.</p>
-<pre class="r"><code>  #Examining reversed items. (Scored 1-5.)
+</div>
+<div id="csjas" class="section level3">
+<h3>CSJAS</h3>
+<pre class="r"><code>#Reverse scoring the appropriate CSJAS items.
+#Examining reversed items. (Scored 1-5.)
 qualtrics_data %&gt;%
-  select(matches(&quot;^CSJAS.*r$&quot;)) %&gt;%
+  dplyr::select(matches(&quot;^CSJAS.*r$&quot;)) %&gt;%
   names()</code></pre>
 <pre><code>##  [1] &quot;CSJAS4r&quot;  &quot;CSJAS5r&quot;  &quot;CSJAS7r&quot;  &quot;CSJAS11r&quot; &quot;CSJAS14r&quot; &quot;CSJAS15r&quot;
 ##  [7] &quot;CSJAS18r&quot; &quot;CSJAS20r&quot; &quot;CSJAS21r&quot; &quot;CSJAS23r&quot; &quot;CSJAS25r&quot; &quot;CSJAS26r&quot;</code></pre>
@@ -745,57 +846,65 @@ for(item in csjas_reversed) {
 ##      3 neither agree nor disagree
 ##      4             somewhat agree
 ##      5           completely agree</code></pre>
-<pre class="r"><code>  #Reversing.
+<pre class="r"><code>#Reversing.
 qualtrics_data &lt;- qualtrics_data %&gt;%
   mutate(across(matches(&quot;^CSJAS.*r$&quot;), ~6 - .))
-  #Confirming reversal.
+#Confirming reversal.
 print(qualtrics_data$CSJAS26r)</code></pre>
 <pre><code>##   [1] 2 1 2 3 2 1 2 2 2 2 2 1 1 3 2 3 3 2 2 1 1 1 2 1 2 1 1 1 1 2 1 1 2 1 2 1 1
 ##  [38] 2 1 2 2 2 1 1 4 1 1 3 1 3 1 1 2 2 2 1 1 3 1 2 2 1 3 2 2 1 4 2 2 2 3 2 1 2
 ##  [75] 2 1 2 3 3 3 3 3 2 4 2 2 2 1 1 2 2 2 2 2 2 3 2 3 1 2 4 2 2 1 2 2 3 2 1 2 1
 ## [112] 1 1 1 3 2 4 2 2 1 3 2 2 2 4 1 2 1 2 3 2 5 2 2 1 2 2 2 5 1 1 2 5 2 1 2 2 1
 ## [149] 1</code></pre>
-<p>#Creating the CSJAS variable by combining the 7 final scale items
-determined in Study 1.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
-  mutate(CSJAS = rowMeans(across(c(CSJAS1, CSJAS2, CSJAS4r, CSJAS10, CSJAS15r, CSJAS17, CSJAS28)), na.rm = TRUE))</code></pre>
-<p>#Creating the Religious Commitment and Intrapersonal and
-Interpersonal subscales variables.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
+<pre class="r"><code>#Creating the CSJAS variable by combining the 7 final scale items determined in Study 1.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
+  mutate(CSJAS = rowMeans(across(c(CSJAS1, CSJAS2, CSJAS4r, CSJAS10, CSJAS15r, CSJAS17, CSJAS28)),
+                          na.rm = TRUE)) %&gt;% 
+#Rescoring to be 0-4 instead of 1-5 (to match Lahtinen).
+  mutate(CSJAS = CSJAS - 1)</code></pre>
+</div>
+<div id="relig" class="section level3">
+<h3>Relig</h3>
+<pre class="r"><code>#Creating the Religious Commitment variable and Intrapersonal and Interpersonal subscale variables.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
   mutate(
     Relig = rowMeans(across(RCI1:RCI10), na.rm = TRUE),
     Relig_inter = rowMeans(across(c(RCI2, RCI6, RCI9, RCI10)), na.rm = TRUE),
     Relig_intra = rowMeans(across(c(RCI1, RCI3, RCI4, RCI5, RCI7, RCI8)), na.rm = TRUE)
   )</code></pre>
-<p>#Creating Anxiety variable.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
+</div>
+<div id="wb-variables" class="section level3">
+<h3>WB Variables</h3>
+<pre class="r"><code>#Creating Anxiety variable.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
   mutate(
-    Anxiety = rowMeans(across(c(Anx__1:Anx__7)), na.rm = TRUE))</code></pre>
-<p>#Creating Depression variable.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
+    Anxiety = rowMeans(across(c(Anx__1:Anx__7)), na.rm = TRUE))
+
+#Creating Depression variable.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
   mutate(
-    Depression = rowMeans(across(c(Dep_1:Dep_13)), na.rm = TRUE))</code></pre>
-<p>#Creating Life Satisfaction variable.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
+    Depression = rowMeans(across(c(Dep_1:Dep_13)), na.rm = TRUE))
+
+#Creating Life Satisfaction variable.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
   mutate(
-    LifeSatisf = rowMeans(across(c(LS_1:LS_5)), na.rm = TRUE))</code></pre>
-<p>#Creating Positive and Negative Affect variable.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;% 
+    LifeSatisf = rowMeans(across(c(LS_1:LS_5)), na.rm = TRUE))
+
+#Creating Positive and Negative Affect variable.
+qualtrics_data &lt;- qualtrics_data %&gt;% 
   rowwise() %&gt;%
   mutate(
     PosAffect = rowMeans(across(c(PANAS__1, PANAS__3, PANAS__5, PANAS__9, PANAS__10, PANAS__12, 
-                    PANAS__14, PANAS__16, PANAS__17, PANAS__19)), 
-                      na.rm = TRUE),
+                                  PANAS__14, PANAS__16, PANAS__17, PANAS__19)), 
+                         na.rm = TRUE),
     NegAffect = rowMeans(across(c(PANAS__2, PANAS__4, PANAS__6, PANAS__7, PANAS__8, PANAS__11, 
-                    PANAS__13, PANAS__15, PANAS__18, PANAS__20))))</code></pre>
-<p>#Reapplying the variable and value labels that were lost from reverse
-scored items.</p>
-<pre class="r"><code>var_label(qualtrics_data) &lt;- var_labels
-val_labels(qualtrics_data) &lt;- val_labels</code></pre>
-<p>#Per preregistration, performing a POMP transformations on all
-well-being variables and #taking their mean to create a composite
-Well-Being variable.</p>
-<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;%
+                                  PANAS__13, PANAS__15, PANAS__18, PANAS__20))))</code></pre>
+</div>
+<div id="wb" class="section level3">
+<h3>WB</h3>
+<pre class="r"><code>#Per preregistration, performing a POMP transformations on all well-being variables and
+#taking their mean to create a composite Well-Being variable.
+qualtrics_data &lt;- qualtrics_data %&gt;%
   mutate(
     # Anxiety: scored from 1 to 4, with 4 indicating high anxiety
     Anxiety_POMP = ((Anxiety - 1) / (4 - 1)) * 100,
@@ -814,23 +923,293 @@ Well-Being variable.</p>
     Anxiety_POMP_r = 100 - Anxiety_POMP,
     Depression_POMP_r = 100 - Depression_POMP,
     NegAffect_POMP_r = 100 - NegAffect_POMP) %&gt;% 
-    # Creating the Well-Being score
-    rowwise() %&gt;%
-      mutate(
-        WellBeing = mean(c(Anxiety_POMP_r, Depression_POMP_r, LifeSatisf_POMP, 
-                           PosAffect_POMP, NegAffect_POMP_r), na.rm = TRUE)
-      ) %&gt;%
-      ungroup()</code></pre>
-<p>#Creating dataset for analyses amd removing unneeded variables.</p>
-<pre class="r"><code>data_for_analyses &lt;- qualtrics_data %&gt;% 
-  select(Gender_:PANAS__20, NFM:WellBeing)</code></pre>
-<p>#Reordering variables and writing out dataset.</p>
-<pre class="r"><code>data_for_analyses &lt;- data_for_analyses %&gt;% 
-  select(Gender_:PolLib_, NFM:WellBeing, NFM1r:PANAS__20)
-write_sav(data_for_analyses, &quot;data/data_for_analysis.sav&quot;)</code></pre>
+  # Creating the Well-Being score
+  rowwise() %&gt;%
+  mutate(
+    WellBeing = mean(c(Anxiety_POMP_r, Depression_POMP_r, LifeSatisf_POMP, 
+                       PosAffect_POMP, NegAffect_POMP_r), na.rm = TRUE)
+  ) %&gt;%
+  ungroup()</code></pre>
+</div>
+</div>
+<div id="removing-wb-outlier" class="section level2">
+<h2>Removing WB Outlier</h2>
+<pre class="r"><code>#DEVIATING FROM PREREGISTRATION
+# Create z-score version of WellBeing
+WB_outlier &lt;- qualtrics_data %&gt;%
+  mutate(WellBeing_z = abs(scale(WellBeing)[,1])) %&gt;% 
+  dplyr::select(WellBeing_z, id) %&gt;% 
+  arrange(desc(WellBeing_z))
+WB_outlier</code></pre>
+<pre><code>## # A tibble: 149 × 2
+##    WellBeing_z id   
+##          &lt;dbl&gt; &lt;chr&gt;
+##  1        4.99 26256
+##  2        2.35 25923
+##  3        2.16 25696
+##  4        2.13 25794
+##  5        2.03 25770
+##  6        1.91 25704
+##  7        1.80 25698
+##  8        1.79 26128
+##  9        1.75 25757
+## 10        1.64 25706
+## # ℹ 139 more rows</code></pre>
+<pre class="r"><code>#During analyses, I discovered that this participant was dramatically skewing results.
+#Excluding this case.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  filter(id != 26256)
+# n = 148</code></pre>
+</div>
+<div id="dummy-coding-demographic-variables" class="section level2">
+<h2>Dummy Coding Demographic Variables</h2>
+<p>Creating dummy variables where necessary for demographic variables
+which will be used as control variables in analyses.</p>
+<p>For categorical variables, categories that comprise less than 5% of
+the sample will be combined.</p>
+<div id="gender" class="section level3">
+<h3>Gender</h3>
+<pre class="r"><code>#Gender
+qualtrics_data %&gt;% 
+  count(Gender_)</code></pre>
+<pre><code>## # A tibble: 2 × 2
+##   Gender_        n
+##   &lt;dbl+lbl&gt;  &lt;int&gt;
+## 1 1 [Male]      62
+## 2 2 [Female]    86</code></pre>
+<pre class="r"><code>#Gender has possible values of 1 = male, 2 = female, or 3 = Nonbinary / Third gender.
+#There are no cases of Gender = 3 in the dataset, so Gender can be added to the regression 
+  #analyses with no need for dummy coding.</code></pre>
+</div>
+<div id="sexual-orientation" class="section level3">
+<h3>Sexual Orientation</h3>
+<pre class="r"><code>qualtrics_data %&gt;% 
+  count(SexOrient_) %&gt;% 
+  mutate(perc = n/1.49)</code></pre>
+<pre><code>## # A tibble: 3 × 3
+##   SexOrient_           n  perc
+##   &lt;dbl+lbl&gt;        &lt;int&gt; &lt;dbl&gt;
+## 1 1 [heterosexual]   139 93.3 
+## 2 2 [homosexual]       2  1.34
+## 3 3 [bisexual]         7  4.70</code></pre>
+<pre class="r"><code>#Sexual Orientation has possible values of 1 = heterosexual, 2 = homosexual, 3 = bisexual, 
+  #4 = other, and 5 = prefer not to say.
+#There are 140 cases of heterosexual, 2 cases of homosexual, and 7 cases of bisexual.
+#Creating dummy variable for Sexual Orientation, combining homosexual and bisexual since they 
+  #make up only 1.3% and 4.7% percent of the sample, respectively.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  mutate(
+    SexOrien_dummy = as.numeric(SexOrient_ %in% c(2, 3))
+  )
+qualtrics_data %&gt;% 
+  count(SexOrien_dummy)%&gt;% 
+  mutate(perc = n/1.49)</code></pre>
+<pre><code>## # A tibble: 2 × 3
+##   SexOrien_dummy     n  perc
+##            &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;
+## 1              0   139 93.3 
+## 2              1     9  6.04</code></pre>
+</div>
+<div id="race" class="section level3">
+<h3>Race</h3>
+<pre class="r"><code>qualtrics_data %&gt;% 
+  count(Race_) %&gt;% 
+  mutate(perc = n/1.49)</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   Race_                                       n   perc
+##   &lt;dbl+lbl&gt;                               &lt;int&gt;  &lt;dbl&gt;
+## 1 2 [Asian]                                  14  9.40 
+## 2 3 [Black or African American]               7  4.70 
+## 3 4 [Hispanic, Latino, or Spanish Origin]    11  7.38 
+## 4 5 [Middle Eastern or North African]         1  0.671
+## 5 7 [White]                                 111 74.5  
+## 6 8 [Other]                                   4  2.68</code></pre>
+<pre class="r"><code>#Create dummy variables for Race categories.
+#Using White (7; 75.2% of sample) as the reference category.
+#Combining Black (3; 4.7%), Middle Eastern or N. African (5; .7%), and Other (8; 2.7%)
+  #into Black_or_Other dummy variable.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  mutate(
+    Asian_dummy = as.numeric(Race_ == 2),
+    Black_or_Other_dummy = as.numeric(Race_ %in% c(3, 5, 8)),
+    Hispanic_dummy = as.numeric(Race_ == 4),
+  )
+qualtrics_data %&gt;% 
+  count(Black_or_Other_dummy)%&gt;% 
+  mutate(perc = n/1.49)</code></pre>
+<pre><code>## # A tibble: 2 × 3
+##   Black_or_Other_dummy     n  perc
+##                  &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;
+## 1                    0   136 91.3 
+## 2                    1    12  8.05</code></pre>
+</div>
+<div id="age" class="section level3">
+<h3>Age</h3>
+<pre class="r"><code>qualtrics_data &lt;- qualtrics_data %&gt;%
+  mutate(Age = as.numeric(Age))</code></pre>
+</div>
+<div id="major" class="section level3">
+<h3>Major</h3>
+<pre class="r"><code>#Values for the (academic) Major variable came from a textbox in the survey (this was a mistake). 
+#I worked with Claude.ai to create this code to sort cases into major cateogories.
+# This code will create two new variables: Major_Category and Major_Category2
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  mutate(
+    # Create Major_Category with 14 categories (including Uncategorized)
+    Major_Category = case_when(
+      # Category 1 - Economics
+      str_detect(tolower(Major_), &quot;^economics|^econ|^mathematical economics&quot;) ~ 1,
+      
+      # Category 2 - Political Science
+      str_detect(tolower(Major_), &quot;^politic|^international politics|^poly sci|^politics|^yes - politics&quot;) ~ 2,
+      
+      # Category 3 - Psychology
+      str_detect(tolower(Major_), &quot;^psychology|^university. psychology&quot;) |
+        Major_ %in% c(&quot;double major in psychology and sociology&quot;, &quot;Psycholgy/Communications/Marketing&quot;) ~ 3,
+      
+      # Category 4 - Sociology
+      str_detect(tolower(Major_), &quot;^sociology&quot;) ~ 4,
+      
+      # Category 5 - Business
+      str_detect(tolower(Major_), &quot;^business|^bem|^finance|^accounting|^acconting|^mathematical business&quot;) |
+        Major_ %in% c(&quot;yes, business&quot;, &quot;Business/Psych&quot;, &quot;Finance and Computer Science&quot;, &quot;Intended Acconting&quot;) ~ 5,
+      
+      # Category 6 - STEM - Biological/Medical
+      str_detect(tolower(Major_), &quot;^biology|^biochemistry|^pre-med|^pre med&quot;) |
+        Major_ %in% c(&quot;medicinal chemistry&quot;, &quot;biochemistry and molecular biology&quot;, 
+                     &quot;Biology B.S.&quot;, &quot;Biochemistry and African-American Studies&quot;, 
+                     &quot;biology/psychology&quot;, &quot;Pre-medicine&quot;) ~ 6,
+      
+      # Category 7 - Health &amp; Exercise Science
+      str_detect(tolower(Major_), &quot;^health|^hes&quot;) ~ 7,
+      
+      # Category 8 - Communications
+      str_detect(tolower(Major_), &quot;^communication&quot;) ~ 8,
+      
+      # Category 9 - Undecided
+      str_detect(tolower(Major_), &quot;^undecided|^undeclared|^tbd|^n/a|^unsure&quot;) |
+        Major_ == &quot;Yes and my major is undecided&quot; ~ 9,
+      
+      # Category 10 - STEM - Physical Sciences
+      str_detect(tolower(Major_), &quot;^chemistry|^engineering&quot;) |
+        Major_ %in% c(&quot;Computer Science&quot;, &quot;Computer Science &amp; Finance&quot;) ~ 10,
+      
+      # Category 13 - Education
+      str_detect(tolower(Major_), &quot;^education|^elementary education&quot;) |
+        Major_ == &quot;Mathematics education&quot; ~ 13,
+      
+      # Category 11 - STEM - Mathematics
+      str_detect(tolower(Major_), &quot;^math|^applied math&quot;) |
+        Major_ == &quot;Statistics and Psychology&quot; ~ 11,
+      
+      # Category 12 - Humanities
+      str_detect(tolower(Major_), &quot;^english|^history|^theatre|^philosphy|^philosophy|^studio art&quot;) ~ 12,
+      
+      # Category 99 - Uncategorized
+      TRUE ~ 99
+    ),
+    
+    # Create Major_Category2 with 5 consolidated categories
+    Major_Category2 = case_when(
+      # Category 1 - Business &amp; Economics
+      Major_Category %in% c(1, 5) ~ 1,
+      
+      # Category 2 - Social Sciences
+      Major_Category %in% c(2, 3, 4, 8) ~ 2,
+      
+      # Category 3 - STEM
+      Major_Category %in% c(6, 7, 10, 11) ~ 3,
+      
+      # Category 4 - Humanities &amp; Education
+      Major_Category %in% c(12, 13) ~ 4,
+      
+      # Category 5 - Other/Undecided
+      Major_Category %in% c(9, 99) ~ 5,
+      
+      TRUE ~ NA_real_  # Catch any unforeseen cases
+    )
+  )
+
+# Add labels to the categories (optional)
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  mutate(
+    Major_Category_Label = case_when(
+      Major_Category == 1 ~ &quot;Economics&quot;,
+      Major_Category == 2 ~ &quot;Political Science&quot;,
+      Major_Category == 3 ~ &quot;Psychology&quot;,
+      Major_Category == 4 ~ &quot;Sociology&quot;,
+      Major_Category == 5 ~ &quot;Business&quot;,
+      Major_Category == 6 ~ &quot;STEM - Biological/Medical&quot;,
+      Major_Category == 7 ~ &quot;Health &amp; Exercise Science&quot;,
+      Major_Category == 8 ~ &quot;Communications&quot;,
+      Major_Category == 9 ~ &quot;Undecided&quot;,
+      Major_Category == 10 ~ &quot;STEM - Physical Sciences&quot;,
+      Major_Category == 11 ~ &quot;STEM - Mathematics&quot;,
+      Major_Category == 12 ~ &quot;Humanities&quot;,
+      Major_Category == 13 ~ &quot;Education&quot;,
+      Major_Category == 99 ~ &quot;Uncategorized&quot;,
+      TRUE ~ &quot;Unknown&quot;
+    ),
+    
+    Major_Category2_Label = case_when(
+      Major_Category2 == 1 ~ &quot;Business &amp; Economics&quot;,
+      Major_Category2 == 2 ~ &quot;Social Sciences&quot;,
+      Major_Category2 == 3 ~ &quot;STEM&quot;,
+      Major_Category2 == 4 ~ &quot;Humanities &amp; Education&quot;,
+      Major_Category2 == 5 ~ &quot;Other/Undecided&quot;,
+      TRUE ~ &quot;Unknown&quot;
+    )
+  )
+#Examining how majors were sorted to make any adjustments.
+majors&lt;- qualtrics_data %&gt;% 
+  dplyr::select(Major_, Major_Category, Major_Category_Label, Major_Category2, Major_Category2_Label) %&gt;% 
+  arrange(Major_Category2, Major_)
+#Creating dummy variables for major.
+qualtrics_data %&gt;% 
+  count(Major_Category2_Label) %&gt;% 
+  mutate(perc = n/1.49)</code></pre>
+<pre><code>## # A tibble: 5 × 3
+##   Major_Category2_Label      n  perc
+##   &lt;chr&gt;                  &lt;int&gt; &lt;dbl&gt;
+## 1 Business &amp; Economics      47 31.5 
+## 2 Humanities &amp; Education    11  7.38
+## 3 Other/Undecided           20 13.4 
+## 4 STEM                      40 26.8 
+## 5 Social Sciences           30 20.1</code></pre>
+<pre class="r"><code>#Using &#39;Business &amp; Economics&#39; (1; most numerous) as the reference category.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  mutate(
+    SocScience_dummy = as.numeric(Major_Category2 == 2),
+    STEM_dummy = as.numeric(Major_Category2 == 3),
+    Hum_Educ_dummy = as.numeric(Major_Category2 == 4),
+    Other_Undec_dummy = as.numeric(Major_Category2 == 5),
+  )</code></pre>
+<pre class="r"><code>#Reapplying the variable and value labels that were lost from reverse scored items.
+var_label(qualtrics_data) &lt;- var_labels
+val_labels(qualtrics_data) &lt;- val_labels</code></pre>
+<pre class="r"><code>#Renaming some variables.
+qualtrics_data &lt;- qualtrics_data %&gt;%
+  rename(Gender = Gender_, SexOrien = SexOrient_, Race = Race_,
+         Major = Major_, PolLib = PolLib_)</code></pre>
+</div>
+</div>
+<div id="creating-dataset-for-analysis" class="section level2">
+<h2>Creating Dataset for Analysis</h2>
+<pre class="r"><code>#Creating dataset for analysis and removing unneeded variables.
+data_for_analysis &lt;- qualtrics_data %&gt;% 
+  dplyr::select(Gender:PANAS__20, NFM:Other_Undec_dummy)</code></pre>
+<pre class="r"><code>#Reordering variables and writing out dataset.
+data_for_analysis &lt;- data_for_analysis %&gt;% 
+  dplyr::select(Gender:Age, Major_Category2_Label, PolLib, NFM:WellBeing, NFM1r:PANAS__20,
+         Major, Major_Category, Major_Category2, Major_Category_Label, 
+         SexOrien_dummy:Hispanic_dummy, SocScience_dummy:Other_Undec_dummy)
+write_sav(data_for_analysis, &quot;data/data_for_analysis.sav&quot;)</code></pre>
+</div>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -862,7 +1241,41 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

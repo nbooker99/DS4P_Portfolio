@@ -1,5 +1,62 @@
 ---
-title: "Portfolio 9"
+title: "Portfolio 9 - CFA"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(haven)
+DataForAnalysis <- read_sav("data/DataForAnalysis.sav")
+library(rsample)
+library(lavaan)
+```
+
+```{r}
+# Set a seed for reproducibility
+set.seed(1234)
+
+# Create an initial split with 50/50 proportion
+data_split <- initial_split(DataForAnalysis, prop = 0.5)
+
+# Save training data
+EFA_data <- training(data_split)
+dim(EFA_data)
+
+# Save testing data
+CFA_data <- testing(data_split)
+dim(CFA_data)
+```
+```{r}
+#Write out EFA data to replicate EFA in SPSS.
+#write_sav(EFA_data, "EFA_data.sav")
+```
+
+
+```{r}
+# Define your CFA model with a different name for the latent factor
+cfa_model <- '
+  # Define one-factor structure with a different name
+  CSJAS_Factor =~ CSJAS1 + CSJAS2 + CSJAS4r + CSJAS10 + CSJAS15r + CSJAS17 + CSJAS28
+'
+
+# Fit the CFA model using maximum likelihood estimation
+cfa_fit <- cfa(cfa_model, 
+               data = CFA_data, 
+               estimator = "ML")  # ML for maximum likelihood
+
+# Get a summary of the results
+summary(cfa_fit, fit.measures = TRUE, standardized = TRUE)
+```
+

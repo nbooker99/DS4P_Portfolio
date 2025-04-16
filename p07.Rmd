@@ -1,5 +1,96 @@
 ---
 title: "Portfolio 7"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+```
+
+Goal: I have to create a spreadsheet that contains the names, emails, classification, expected completion date, and induction date of WFU seniors who are anticipated to graduate in 2025 who are current members of Psi Chi. I have a spreadsheet of all current Psi Chi WFU chapter members since the chapter began, many of whom are not current WFU seniors expecting to graduate nor current WFU students at all. I have another spreadsheet of all WFU psychology majors. 
+
+```{r message=FALSE}
+library(tidyverse)
+library(stringr)
+library(readr)
+library(readxl)
+psichi_members <- read_csv("Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv")
+psych_majors <- read_excel("WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx")
+new_members <- read_csv("new_members.csv")
+```
+
+Want to make sure there is a column in both spreadsheets with names formatted the same way.
+
+```{r}
+psych_majors <- psych_majors %>%
+  mutate(
+    # Remove "(Private)" suffix if present
+    name = str_remove(Student, " \\(Private\\)"),
+    # Names are already in "Lastname, Firstname" format, so just keep them as is
+    # but ensure they're clean
+    name = str_trim(name)
+  )
+
+psichi_members <- psichi_members %>%
+  mutate(
+    # Convert "Lastname Firstname" to "Lastname, Firstname"
+    # First check if it already has a comma
+    name = case_when(
+      str_detect(`Applicant Name`, ",") ~ `Applicant Name`,  # Already in "Lastname, Firstname" format
+      TRUE ~ str_replace(`Applicant Name`, "(\\S+)\\s+(\\S+.*)", "\\1, \\2")  # Convert "Lastname Firstname" to "Lastname, Firstname"
+    ),
+    # Trim any extra spaces
+    name = str_trim(name)
+  )
+```
+
+```{r}
+# Join the datasets to find psychology majors who are Psi Chi members
+current_student_psichi_members <- inner_join(
+  psych_majors,
+  psichi_members,
+  by = "name"
+) %>% 
+  select(name, `WFU Email Address`, `Class Standing at Start of Period`, `Program of Study Completion Status`, `Expected Completion Date`, `Induction Date`)
+
+current_student_psichi_members <- current_student_psichi_members %>%
+  mutate(`Expected Completion Date` = as.character(`Expected Completion Date`),
+         email = "") %>%  # Create empty email column
+  relocate(email, .after = name) %>% 
+  mutate(`In Psych Majors Spreadsheet` = TRUE)
+```
+
+```{r}
+current_student_psichi_new_members <- left_join(
+  new_members,
+  psych_majors,
+  by = "name"
+) %>% 
+  mutate(`In Psych Majors Spreadsheet` = !is.na(`WFU Email Address`), # Create indicator variable
+         `Induction Date` = "4/22/2025") %>% 
+  select(name, email, `WFU Email Address`, `Class Standing at Start of Period`, `Program of Study Completion Status`, `Expected Completion Date`, `Induction Date`, `In Psych Majors Spreadsheet`)
+
+current_student_psichi_new_members <- current_student_psichi_new_members %>%
+  mutate(`Expected Completion Date` = as.character(`Expected Completion Date`),
+         `Program of Study Completion Status` = ifelse(`In Psych Majors Spreadsheet` == FALSE, 
+                                                      "Unknown", 
+                                                      `Program of Study Completion Status`))
+```
+
+```{r}
+current_student_psichi_members <- bind_rows(current_student_psichi_members, current_student_psichi_new_members)
+```
+
+
+```{r}
+write_excel_csv(current_student_psichi_members, file = "/Users/noahbooker/Documents/Documents/TA/Office/Psi Chi/current_student_psichi_members_Spring2025.csv")
+```
+

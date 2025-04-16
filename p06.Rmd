@@ -1,5 +1,159 @@
 ---
 title: "Portfolio 6"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+```{r eval = FALSE}
+Relig_vars <- c("scale(Relig)", "scale(Relig_inter)", "scale(Relig_intra)")
+expl_vars <- c("scale(NFM)")
+
+# Function to run regressions using formulas created from strings
+run_regressions <- function(dependent_var, explanatory_var) {
+  # Model 1: Just the explanatory variable
+  print(paste("Model 1:", dependent_var, "~", explanatory_var))
+  print(summary(lm(as.formula(paste(dependent_var, "~",
+                                    explanatory_var)), data = 
+                     data_for_analysis)))
+  
+  # Model 2: Add all controls
+  print(paste("Model 2:", dependent_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm(as.formula(paste(dependent_var, "~", 
+                                    explanatory_var, 
+    "+ PolLib + Gender + SexOrien_dummy + Asian_dummy +
+    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+    data = data_for_analysis)))
+}
+
+# Run all combinations of dependent and explanatory variables
+for(i in 1:length(Relig_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(Relig_vars[i], expl_vars[j])
+  }
+}
+```
+
+```{r eval = FALSE}
+record_regr_output <- function()
+regr_summary <- summary(lm(scale(Relig) ~ scale(NFM), data = data_for_analysis))
+
+predictor <- regr_summary$terms[[3]][[2]]
+outcome <- regr_summary$terms[[2]][[2]]
+beta <- regr_summary$coefficients[2]
+t <- regr_summary$coefficients[6]
+t_p <- regr_summary$coefficients[8]
+R <- regr_summary$r.squared
+adjR <- regr_summary$adj.r.squared
+F_ <- print(paste0("F(", regr_summary$fstatistic[2], ",", regr_summary$fstatistic[3], ") = ", round(regr_summary$fstatistic[1], 2))) #Claude helped improve this by removing the extra spaces and rounding.
+F_p <- pf(regr_summary$fstatistic[1], regr_summary$fstatistic[2], regr_summary$fstatistic[3], lower.tail = FALSE) #Claude gave me this code.
+
+regr_output <- tibble(
+  model = model,
+  beta = beta,
+  t = t,
+  t_p = t_p,
+  R = R,
+  adjR = adjR,
+  F_ = F_,
+  F_p = F_p
+)
+
+regr_output
+```
+
+I couldn't figure out how to combine these two pieces, so I asked Claude for help.
+
+```{r}
+Relig_vars <- c("scale(Relig)", "scale(Relig_inter)", "scale(Relig_intra)")
+expl_vars <- c("scale(NFM)")
+
+# Initialize an empty tibble to store all results
+all_results <- tibble()
+
+# Function to run regressions and store results
+run_regressions <- function(dependent_var, explanatory_var) {
+  # Model 1: Just the explanatory variable
+  model_name <- paste("Model 1:", dependent_var, "~", explanatory_var)
+  regr_summary <- summary(lm(as.formula(paste(dependent_var, "~",
+                                   explanatory_var)), data = data_for_analysis))
+  
+  # Store results
+  beta <- regr_summary$coefficients[2, 1]
+  t <- regr_summary$coefficients[2, 3]
+  t_p <- regr_summary$coefficients[2, 4]
+  R <- regr_summary$r.squared
+  adjR <- regr_summary$adj.r.squared
+  F_ <- paste0("F(", regr_summary$fstatistic[2], ",", regr_summary$fstatistic[3], ") = ", round(regr_summary$fstatistic[1], 2))
+  F_p <- pf(regr_summary$fstatistic[1], regr_summary$fstatistic[2], regr_summary$fstatistic[3], lower.tail = FALSE)
+  
+  # Create row and bind to results
+  regr_output <- tibble(
+    model = model_name,
+    predictor = explanatory_var,
+    outcome = dependent_var,
+    beta = beta,
+    t = t,
+    t_p = t_p,
+    R = R,
+    adjR = adjR,
+    F_ = F_,
+    F_p = F_p
+  )
+  
+  all_results <<- bind_rows(all_results, regr_output)
+  
+  # Model 2: Add all controls
+  model_name <- paste("Model 2:", dependent_var, "~", explanatory_var, "+ controls")
+  regr_summary <- summary(lm(as.formula(paste(dependent_var, "~", 
+                                   explanatory_var, 
+                                   "+ PolLib + Gender + SexOrien_dummy + Asian_dummy +
+                                   Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+                                   STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+                              data = data_for_analysis))
+  
+  # Store results for model 2
+  beta <- regr_summary$coefficients[2, 1]
+  t <- regr_summary$coefficients[2, 3]
+  t_p <- regr_summary$coefficients[2, 4]
+  R <- regr_summary$r.squared
+  adjR <- regr_summary$adj.r.squared
+  F_ <- paste0("F(", regr_summary$fstatistic[2], ",", regr_summary$fstatistic[3], ") = ", round(regr_summary$fstatistic[1], 2))
+  F_p <- pf(regr_summary$fstatistic[1], regr_summary$fstatistic[2], regr_summary$fstatistic[3], lower.tail = FALSE)
+  
+  regr_output <- tibble(
+    model = model_name,
+    predictor = explanatory_var,
+    outcome = dependent_var,
+    beta = beta,
+    t = t,
+    t_p = t_p,
+    R = R,
+    adjR = adjR,
+    F_ = F_,
+    F_p = F_p
+  )
+  
+  all_results <<- bind_rows(all_results, regr_output)
+}
+
+# Run all combinations of dependent and explanatory variables
+for(i in 1:length(Relig_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(Relig_vars[i], expl_vars[j])
+  }
+}
+
+# View the results table
+all_results
+```

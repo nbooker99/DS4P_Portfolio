@@ -1,5 +1,131 @@
 ---
 title: "Portfolio 5"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+```{r eval = FALSE}
+WB_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+             "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("CSJAS", "Relig", "Relig_inter", "Relig_intra")
+
+
+run_regressions <- function(WB_vars, expl_vars) {
+  print(summary(lm(WB_vars ~ expl_vars, data = data_for_analysis)))
+  print(summary(lm(WB_vars ~ expl_vars + PolLib, data = data_for_analysis)))
+  print(summary(lm(WB_vars ~ expl_vars + PolLib + Gender, data = data_for_analysis)))
+  print(summary(lm(WB_vars ~ expl_vars + PolLib + Gender + SexOrien_dummy + Asian_dummy +
+                     Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + STEM_dummy + 
+                     Hum_Educ_dummy + Other_Undec_dummy, data = data_for_analysis)))
+}
+
+for(i in 1:length(WB_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(WB_vars[i], expl_vars[j])
+  }
+}
+```
+
+
+Claude.ai: I see a few issues with your code that need to be fixed for it to work properly. Let me explain:
+
+The main issue is in your run_regressions() function. When you pass variables like WB_vars[i] and expl_vars[j], these are just strings containing variable names, not the actual variables themselves. The formula notation in lm() expects actual variable names, not strings.
+You're trying to use WB_vars and expl_vars directly in the formula, but you're passing them as parameters to the function.
+The data_for_analysis dataset is referenced but not defined in the code shown.
+
+Here's a corrected version:
+
+```{r eval = FALSE}
+# Define variable names
+WB_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+             "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("CSJAS", "Relig", "Relig_inter", "Relig_intra")
+
+# Function to run regressions using formulas created from strings
+run_regressions <- function(dependent_var, explanatory_var, data) {
+  # Model 1: Just the explanatory variable
+  formula1 <- as.formula(paste(dependent_var, "~", explanatory_var))
+  print(paste("Model 1:", dependent_var, "~", explanatory_var))
+  print(summary(lm(formula1, data = data)))
+  
+  # Model 2: Add PolLib
+  formula2 <- as.formula(paste(dependent_var, "~", explanatory_var, "+ PolLib"))
+  print(paste("Model 2:", dependent_var, "~", explanatory_var, "+ PolLib"))
+  print(summary(lm(formula2, data = data)))
+  
+  # Model 3: Add Gender
+  formula3 <- as.formula(paste(dependent_var, "~", explanatory_var, "+ PolLib + Gender"))
+  print(paste("Model 3:", dependent_var, "~", explanatory_var, "+ PolLib + Gender"))
+  print(summary(lm(formula3, data = data)))
+  
+  # Model 4: Add all controls
+  formula4 <- as.formula(paste(dependent_var, "~", explanatory_var, 
+                              "+ PolLib + Gender + SexOrien_dummy + Asian_dummy + 
+                              Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+                              STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy"))
+  print(paste("Model 4:", dependent_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm(formula4, data = data)))
+}
+
+# Run all combinations of dependent and explanatory variables
+for(i in 1:length(WB_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(WB_vars[i], expl_vars[j], data_for_analysis)
+  }
+}
+```
+
+Claude: The key changes are:
+
+Added quotes around variable names in your vectors
+Modified the function to build formula strings and convert them to formulas using as.formula()
+Added the data parameter to the function
+Added some print statements to help identify which model is being run
+
+Make sure your data_for_analysis dataframe exists and contains all the variables referenced in the code.
+
+```{r}
+# Define variable names
+WB_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+             "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("CSJAS", "Relig", "Relig_inter", "Relig_intra")
+
+# Function to run regressions using formulas created from strings
+run_regressions <- function(dependent_var, explanatory_var) {
+  # Model 1: Just the explanatory variable
+  print(paste("Model 1:", dependent_var, "~", explanatory_var))
+  print(summary(lm(as.formula(paste(dependent_var, "~", explanatory_var)), data = data_for_analysis)))
+  
+  # Model 2: Add PolLib
+  print(paste("Model 2:", dependent_var, "~", explanatory_var, "+ PolLib"))
+  print(summary(lm(as.formula(paste(dependent_var, "~", explanatory_var, "+ PolLib")), data = data_for_analysis)))
+  
+  # Model 3: Add Gender
+  print(paste("Model 3:", dependent_var, "~", explanatory_var, "+ PolLib + Gender"))
+  print(summary(lm(as.formula(paste(dependent_var, "~", explanatory_var, "+ PolLib + Gender")), data = data_for_analysis)))
+  
+  # Model 4: Add all controls
+  print(paste("Model 4:", dependent_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm(as.formula(paste(dependent_var, "~", explanatory_var, 
+    "+ PolLib + Gender + SexOrien_dummy + Asian_dummy + Black_or_Other_dummy +
+    Hispanic_dummy + SocScience_dummy + STEM_dummy + Hum_Educ_dummy +
+    Other_Undec_dummy")), data = data_for_analysis)))
+}
+
+# Run all combinations of dependent and explanatory variables
+for(i in 1:length(WB_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(WB_vars[i], expl_vars[j])
+  }
+}
+```

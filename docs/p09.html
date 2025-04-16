@@ -11,12 +11,12 @@
 
 
 
-<title>Portfolio 9</title>
+<title>Portfolio 9 - CFA</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -29,7 +29,11 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
@@ -141,11 +145,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +182,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +191,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -219,7 +220,73 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
 
 
 
@@ -229,6 +296,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -291,9 +368,17 @@ $(document).ready(function () {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
-<h1 class="title toc-ignore">Portfolio 9</h1>
+
+<h1 class="title toc-ignore">Portfolio 9 - CFA</h1>
 
 </div>
 
@@ -305,9 +390,119 @@ of the goal, the product (computer program, hand graph, computer graph,
 etc.), the data, and some interpretation. Reports must be reproducible
 and of high quality in terms of writing, grammar, presentation, etc.</p>
 </blockquote>
+<pre class="r"><code>library(haven)
+DataForAnalysis &lt;- read_sav(&quot;data/DataForAnalysis.sav&quot;)
+library(rsample)
+library(lavaan)</code></pre>
+<pre><code>## This is lavaan 0.6-19
+## lavaan is FREE software! Please report any bugs.</code></pre>
+<pre class="r"><code># Set a seed for reproducibility
+set.seed(1234)
+
+# Create an initial split with 50/50 proportion
+data_split &lt;- initial_split(DataForAnalysis, prop = 0.5)
+
+# Save training data
+EFA_data &lt;- training(data_split)
+dim(EFA_data)</code></pre>
+<pre><code>## [1]  73 108</code></pre>
+<pre class="r"><code># Save testing data
+CFA_data &lt;- testing(data_split)
+dim(CFA_data)</code></pre>
+<pre><code>## [1]  74 108</code></pre>
+<pre class="r"><code>#Write out EFA data to replicate EFA in SPSS.
+#write_sav(EFA_data, &quot;EFA_data.sav&quot;)</code></pre>
+<pre class="r"><code># Define your CFA model with a different name for the latent factor
+cfa_model &lt;- &#39;
+  # Define one-factor structure with a different name
+  CSJAS_Factor =~ CSJAS1 + CSJAS2 + CSJAS4r + CSJAS10 + CSJAS15r + CSJAS17 + CSJAS28
+&#39;
+
+# Fit the CFA model using maximum likelihood estimation
+cfa_fit &lt;- cfa(cfa_model, 
+               data = CFA_data, 
+               estimator = &quot;ML&quot;)  # ML for maximum likelihood
+
+# Get a summary of the results
+summary(cfa_fit, fit.measures = TRUE, standardized = TRUE)</code></pre>
+<pre><code>## lavaan 0.6-19 ended normally after 21 iterations
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of model parameters                        14
+## 
+##   Number of observations                            74
+## 
+## Model Test User Model:
+##                                                       
+##   Test statistic                                18.323
+##   Degrees of freedom                                14
+##   P-value (Chi-square)                           0.192
+## 
+## Model Test Baseline Model:
+## 
+##   Test statistic                               276.945
+##   Degrees of freedom                                21
+##   P-value                                        0.000
+## 
+## User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    0.983
+##   Tucker-Lewis Index (TLI)                       0.975
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)               -672.204
+##   Loglikelihood unrestricted model (H1)             NA
+##                                                       
+##   Akaike (AIC)                                1372.407
+##   Bayesian (BIC)                              1404.664
+##   Sample-size adjusted Bayesian (SABIC)       1360.545
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.065
+##   90 Percent confidence interval - lower         0.000
+##   90 Percent confidence interval - upper         0.137
+##   P-value H_0: RMSEA &lt;= 0.050                    0.347
+##   P-value H_0: RMSEA &gt;= 0.080                    0.417
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.041
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                             Standard
+##   Information                                 Expected
+##   Information saturated (h1) model          Structured
+## 
+## Latent Variables:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##   CSJAS_Factor =~                                                       
+##     CSJAS1            1.000                               0.839    0.775
+##     CSJAS2            0.840    0.149    5.637    0.000    0.704    0.644
+##     CSJAS4r           1.119    0.153    7.308    0.000    0.938    0.804
+##     CSJAS10           0.805    0.141    5.727    0.000    0.675    0.653
+##     CSJAS15r          1.455    0.180    8.094    0.000    1.220    0.879
+##     CSJAS17           0.971    0.164    5.934    0.000    0.814    0.674
+##     CSJAS28           0.898    0.137    6.548    0.000    0.753    0.733
+## 
+## Variances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##    .CSJAS1            0.467    0.091    5.160    0.000    0.467    0.399
+##    .CSJAS2            0.700    0.124    5.655    0.000    0.700    0.585
+##    .CSJAS4r           0.480    0.097    4.952    0.000    0.480    0.353
+##    .CSJAS10           0.613    0.109    5.633    0.000    0.613    0.574
+##    .CSJAS15r          0.438    0.109    3.999    0.000    0.438    0.227
+##    .CSJAS17           0.798    0.143    5.580    0.000    0.798    0.546
+##    .CSJAS28           0.487    0.091    5.375    0.000    0.487    0.462
+##     CSJAS_Factor      0.703    0.183    3.847    0.000    1.000    1.000</code></pre>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -339,7 +534,41 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

@@ -1,5 +1,11 @@
 ---
 title: "Project 2: A Somewhat Complicated Case of Wide-to-Long"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > My goal in this project is to use R to take the dataset you see below (with 17 variables, none of them called polarization) and transform it into a dataset that I can use to make the graph you see (further) below, of which polarization is the dependent variable. That's my graph from Portfolio Project 1, and I did all the necessary data restructuring stuff in SPSS in order to make it. The goal of this project is to challenge myself to learn how to do it in R.

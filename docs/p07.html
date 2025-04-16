@@ -13,10 +13,10 @@
 
 <title>Portfolio 7</title>
 
-<script src="site_libs/header-attrs-2.13/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -29,7 +29,11 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
@@ -141,11 +145,15 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.tab('show');
-
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
   // Navbar adjustments
   var navHeight = $(".navbar").first().height() + 15;
@@ -174,8 +182,8 @@ $(document).ready(function () {
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -183,16 +191,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -219,7 +220,73 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
 
 
 
@@ -229,6 +296,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -291,6 +368,14 @@ $(document).ready(function () {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Portfolio 7</h1>
@@ -305,9 +390,77 @@ of the goal, the product (computer program, hand graph, computer graph,
 etc.), the data, and some interpretation. Reports must be reproducible
 and of high quality in terms of writing, grammar, presentation, etc.</p>
 </blockquote>
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, eval=FALSE)</code></pre>
+<p>Goal: I have to create a spreadsheet that contains the names, emails,
+classification, expected completion date, and induction date of WFU
+seniors who are anticipated to graduate in 2025 who are current members
+of Psi Chi. I have a spreadsheet of all current Psi Chi WFU chapter
+members since the chapter began, many of whom are not current WFU
+seniors expecting to graduate nor current WFU students at all. I have
+another spreadsheet of all WFU psychology majors.</p>
+<pre class="r"><code>library(tidyverse)
+library(stringr)
+library(readr)
+library(readxl)
+psichi_members &lt;- read_csv(&quot;Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv&quot;)
+psych_majors &lt;- read_excel(&quot;WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx&quot;)
+new_members &lt;- read_csv(&quot;new_members.csv&quot;)</code></pre>
+<p>Want to make sure there is a column in both spreadsheets with names
+formatted the same way.</p>
+<pre class="r"><code>psych_majors &lt;- psych_majors %&gt;%
+  mutate(
+    # Remove &quot;(Private)&quot; suffix if present
+    name = str_remove(Student, &quot; \\(Private\\)&quot;),
+    # Names are already in &quot;Lastname, Firstname&quot; format, so just keep them as is
+    # but ensure they&#39;re clean
+    name = str_trim(name)
+  )
+
+psichi_members &lt;- psichi_members %&gt;%
+  mutate(
+    # Convert &quot;Lastname Firstname&quot; to &quot;Lastname, Firstname&quot;
+    # First check if it already has a comma
+    name = case_when(
+      str_detect(`Applicant Name`, &quot;,&quot;) ~ `Applicant Name`,  # Already in &quot;Lastname, Firstname&quot; format
+      TRUE ~ str_replace(`Applicant Name`, &quot;(\\S+)\\s+(\\S+.*)&quot;, &quot;\\1, \\2&quot;)  # Convert &quot;Lastname Firstname&quot; to &quot;Lastname, Firstname&quot;
+    ),
+    # Trim any extra spaces
+    name = str_trim(name)
+  )</code></pre>
+<pre class="r"><code># Join the datasets to find psychology majors who are Psi Chi members
+current_student_psichi_members &lt;- inner_join(
+  psych_majors,
+  psichi_members,
+  by = &quot;name&quot;
+) %&gt;% 
+  select(name, `WFU Email Address`, `Class Standing at Start of Period`, `Program of Study Completion Status`, `Expected Completion Date`, `Induction Date`)
+
+current_student_psichi_members &lt;- current_student_psichi_members %&gt;%
+  mutate(`Expected Completion Date` = as.character(`Expected Completion Date`),
+         email = &quot;&quot;) %&gt;%  # Create empty email column
+  relocate(email, .after = name) %&gt;% 
+  mutate(`In Psych Majors Spreadsheet` = TRUE)</code></pre>
+<pre class="r"><code>current_student_psichi_new_members &lt;- left_join(
+  new_members,
+  psych_majors,
+  by = &quot;name&quot;
+) %&gt;% 
+  mutate(`In Psych Majors Spreadsheet` = !is.na(`WFU Email Address`), # Create indicator variable
+         `Induction Date` = &quot;4/22/2025&quot;) %&gt;% 
+  select(name, email, `WFU Email Address`, `Class Standing at Start of Period`, `Program of Study Completion Status`, `Expected Completion Date`, `Induction Date`, `In Psych Majors Spreadsheet`)
+
+current_student_psichi_new_members &lt;- current_student_psichi_new_members %&gt;%
+  mutate(`Expected Completion Date` = as.character(`Expected Completion Date`),
+         `Program of Study Completion Status` = ifelse(`In Psych Majors Spreadsheet` == FALSE, 
+                                                      &quot;Unknown&quot;, 
+                                                      `Program of Study Completion Status`))</code></pre>
+<pre class="r"><code>current_student_psichi_members &lt;- bind_rows(current_student_psichi_members, current_student_psichi_new_members)</code></pre>
+<pre class="r"><code>write_excel_csv(current_student_psichi_members, file = &quot;/Users/noahbooker/Documents/Documents/TA/Office/Psi Chi/current_student_psichi_members_Spring2025.csv&quot;)</code></pre>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -339,7 +492,41 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

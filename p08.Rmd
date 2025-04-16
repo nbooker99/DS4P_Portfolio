@@ -1,5 +1,617 @@
 ---
-title: "Portfolio 8"
+title: "Portfolio 8 - Main Analyses - Study 2"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r message = FALSE, echo=TRUE, eval=TRUE}
+library(tidyverse)
+library(lm.beta)
+library(haven)
+data_for_analysis <- read_sav("data/data_for_analysis.sav")
+```
+
+# Simplest Version of Main Analyses
+
+### 1. Hypothesis: NFM will be positively associated with CSJAS.
+
+Analysis: Regression of Religiosity on NFM.
+
+Relig ~ NFM
+
+```{r echo=TRUE}
+summary(lm.beta(lm(CSJAS ~ NFM, data = data_for_analysis)))
+```
+
+### 2. Hypothesis: NFM will be positively associated with Religiosity.
+
+Analysis: Regression of CSJAS on NFM.
+
+CSJAS ~ NFM
+
+```{r echo=TRUE}
+summary(lm.beta(lm(Relig ~ NFM, data = data_for_analysis)))
+```
+
+### 3. Hypothesis: CSJA and Religiosity will be negatively correlated with one another.
+
+Analyses: Pearson correlation of CSJAS and Religiosity
+
+r(CSJAS, Relig)
+
+```{r echo=TRUE}
+data_for_analysis %>%
+  with(cor.test(CSJAS, Relig, method = "pearson"))
+```
+
+### 4. Hypothesis: CSJA will negatively moderate the positive association between NFM and Religiosity.
+
+Analysis: Regression of Religiosity on NFM, CSJA, and CSJAxNFM.
+
+Relig ~ NFM + CSJAS + CSJASxNFM
+
+```{r echo=TRUE}
+#Creating centered variables.
+data_for_analysis <- data_for_analysis %>% 
+  mutate(NFM_cent = NFM - mean(NFM, na.rm = TRUE),
+         CSJAS_cent = CSJAS - mean(CSJAS, na.rm = TRUE))
+#Running regression.
+summary(lm.beta(lm(Relig ~ CSJAS_cent*NFM_cent, data = data_for_analysis)))
+```
+
+### 5. Hypothesis: Religiosity will negatively moderate the positive relationship between NFM and CSJA.
+
+Analysis: Regression of CSJA on NFM, Religiosity, and Religiosity*NFM.
+
+CSJAS ~ NFM + Relig + ReligxNFM
+
+```{r echo=TRUE}
+data_for_analysis <- data_for_analysis %>% 
+  mutate(Relig_cent = Relig - mean(Relig, na.rm = TRUE),
+         Relig_inter_cent = Relig_inter - mean(Relig_inter, na.rm = TRUE),  #For later
+         Relig_intra_cent = Relig_intra - mean(Relig_intra, na.rm = TRUE))
+summary(lm.beta(lm(CSJAS ~ Relig_cent*NFM_cent, data = data_for_analysis)))
+```
+
+### 6. Hypothesis: Religiosity will be positively associated with Well-Being.
+
+Analysis: Regression of Well-Being on Religiosity.
+
+WB ~ Relig
+
+```{r echo=TRUE}
+summary(lm.beta(lm(WellBeing ~ Relig, data = data_for_analysis)))
+```
+
+### 7. Hypothesis: CSJA will be negatively associated with Well-Being.
+
+Analysis: Regression of Well-Being on CSJAS.
+
+WB ~ CSJAS
+
+```{r echo=TRUE}
+summary(lm.beta(lm(WellBeing ~ CSJAS, data = data_for_analysis)))
+```
+
+# Analyses with control variables, religiosity subscales, and constituent well-being variables
+
+```{r}
+# Function to run regressions and return formatted results
+compile_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Results for both models
+  results <- tibble()
+  
+  # Model 1: No controls
+  regr_summary1 <- summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
+                                   explanatory_var)), data = dataset)))
+  
+  # Create first row
+  results <- tibble(
+    model = "no controls",
+    outcome = outcome_var,
+    predictor = explanatory_var,
+    b = sprintf("%.2f", regr_summary1$coefficients[2, 1]),
+    B = sprintf("%.2f", regr_summary1$coefficients[2, 2]),
+    SE = sprintf("%.2f", regr_summary1$coefficients[2, 3]),
+    t = sprintf("%.2f", regr_summary1$coefficients[2, 4]),
+    t_p = sprintf("%.3f", regr_summary1$coefficients[2, 5]),
+    R = sprintf("%.2f", regr_summary1$r.squared),
+    adjR = sprintf("%.2f", regr_summary1$adj.r.squared),
+    F_ = round(regr_summary1$fstatistic[1], 2),
+    df = paste0("(", regr_summary1$fstatistic[2], ", ", regr_summary1$fstatistic[3], ")"),
+    F_p = sprintf("%.3f", pf(regr_summary1$fstatistic[1], regr_summary1$fstatistic[2], 
+                           regr_summary1$fstatistic[3], lower.tail = FALSE))
+  )
+  
+  # Model 2: With controls
+  regr_summary2 <- summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
+                                   explanatory_var, 
+                                   "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+                                   Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+                                   STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+                              data = dataset)))
+  
+  # Add second row
+  results <- bind_rows(results, tibble(
+    model = "w/ controls",
+    outcome = outcome_var,
+    predictor = explanatory_var,
+    b = sprintf("%.2f", regr_summary2$coefficients[2, 1]),
+    B = sprintf("%.2f", regr_summary2$coefficients[2, 2]),
+    SE = sprintf("%.2f", regr_summary2$coefficients[2, 3]),
+    t = sprintf("%.2f", regr_summary2$coefficients[2, 4]),
+    t_p = sprintf("%.3f", regr_summary2$coefficients[2, 5]),
+    R = sprintf("%.2f", regr_summary2$r.squared),
+    adjR = sprintf("%.2f", regr_summary2$adj.r.squared),
+    F_ = round(regr_summary2$fstatistic[1], 2),
+    df = paste0("(", regr_summary2$fstatistic[2], ", ", regr_summary1$fstatistic[3], ")"),
+    F_p = sprintf("%.3f", pf(regr_summary2$fstatistic[1], regr_summary2$fstatistic[2], 
+                           regr_summary2$fstatistic[3], lower.tail = FALSE))
+  ))
+  
+  return(results)
+}
+
+#Function to loop the compile_regression function for combinations of variables.
+loop_compile_regressions <- function(outcome_var, explanatory_var, dataset) {
+  results <- tibble()
+  for(i in 1:length(outcome_vars)) {
+    for(j in 1:length(expl_vars)) {
+      results <- bind_rows(results, 
+                               compile_regressions(outcome_var[i], explanatory_var[j], dataset))
+      }
+  }
+    return(results)
+}
+```
+
+### 1. CSJAS ~ NFM
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+
+```{r}
+outcome_vars <- c("CSJAS")
+expl_vars <- c("NFM")
+
+results2 <- loop_compile_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+# View results
+results2
+```
+
+### 2. Relig ~ NFM 
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+
+```{r}
+outcome_vars <- c("Relig", "Relig_inter", "Relig_intra")
+expl_vars <- "NFM"
+
+results1 <- loop_compile_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+# View results
+results1
+```
+
+
+```{r message = FALSE}
+library(ppcor)
+```
+
+```{r}
+# Function to run correlation using strings
+run_corr <- function(variable1, variable2, dataset) {
+  # Simple correlation
+  corr <- paste0("r(", variable1, ", ", variable2, ")")
+  corr_results <- cor.test(dataset[[variable1]], dataset[[variable2]], method = "pearson")
+  
+  corr_output <- tibble(
+    corr = corr,
+    r = sprintf("%.2f", corr_results$estimate),
+    p = sprintf("%.3f", corr_results$p.value),
+    t = sprintf("%.2f", corr_results$statistic),
+    df = corr_results$parameter
+  )
+  
+  # 2. Partial correlation with controls
+  corr <- paste0("r(", variable1, ", ", variable2, " | controls)")
+  corr_results <- pcor.test(x = dataset[[variable1]], 
+                    y = dataset[[variable2]], 
+                    z = dataset[, c("PolLib", "Gender", "Age", "Asian_dummy", 
+                                              "Black_or_Other_dummy", "Hispanic_dummy", 
+                                              "SexOrien_dummy", "SocScience_dummy", "STEM_dummy", 
+                                              "Hum_Educ_dummy", "Other_Undec_dummy")],
+                    method = "pearson")
+  
+  corr_output <- bind_rows(corr_output, tibble(
+    corr = corr,
+    r = sprintf("%.2f", corr_results$estimate),
+    p = sprintf("%.3f", corr_results$p.value),
+    t = sprintf("%.2f", corr_results$statistic),
+    df = corr_results$n - corr_results$gp - 2
+  ))
+  return(corr_output)
+}
+# Run all combinations of variables
+loop_corr <- function(variable1, variable2, dataset) {
+  results <- tibble()
+  for(i in 1:length(variable1)) {
+    for(j in 1:length(variable2)) {
+      results <- bind_rows(results, run_corr(variable1[i], variable2[j], dataset))
+      }
+    }
+  return(results)
+}
+```
+
+### 3. r(CSJAS, Relig)
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+
+```{r}
+var1 <- c("CSJAS")
+vars2 <- c("Relig", "Relig_inter", "Relig_intra")
+
+results3 <- loop_corr(var1, vars2, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+# View the results table
+results3
+```
+
+```{r}
+compile_mod_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Results for both models
+  results <- tibble()
+  
+  # Model 1: No controls
+  regr_summary1 <- summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
+                                   explanatory_var)), data = dataset)))
+  
+  # Create first row
+  results <- tibble(
+    model = "no controls",
+    outcome = outcome_var,
+    predictor = explanatory_var,
+    b = sprintf("%.2f", regr_summary1$coefficients[4, 1]),
+    B = sprintf("%.2f", regr_summary1$coefficients[4, 2]),
+    SE = sprintf("%.2f", regr_summary1$coefficients[4, 3]),
+    t = sprintf("%.2f", regr_summary1$coefficients[4, 4]),
+    t_p = sprintf("%.3f", regr_summary1$coefficients[4, 5]),
+    R = sprintf("%.2f", regr_summary1$r.squared),
+    adjR = sprintf("%.2f", regr_summary1$adj.r.squared),
+    F_ = round(regr_summary1$fstatistic[1], 2),
+    df = paste0("(", regr_summary1$fstatistic[2], ", ", regr_summary1$fstatistic[3], ")"),
+    F_p = sprintf("%.3f", pf(regr_summary1$fstatistic[1], regr_summary1$fstatistic[2], 
+                           regr_summary1$fstatistic[3], lower.tail = FALSE))
+  )
+ 
+  # Model 2: With controls
+  regr_summary2 <- summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
+                                   explanatory_var, 
+                                   "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+                                   Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+                                   STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+                              data = dataset)))
+  
+  # Add second row
+  results <- bind_rows(results, tibble(
+    model = "w/ controls",
+    outcome = outcome_var,
+    predictor = explanatory_var,
+    b = sprintf("%.2f", regr_summary2$coefficients[15, 1]),
+    B = sprintf("%.2f", regr_summary2$coefficients[15, 2]),
+    SE = sprintf("%.2f", regr_summary2$coefficients[15, 3]),
+    t = sprintf("%.2f", regr_summary2$coefficients[15, 4]),
+    t_p = sprintf("%.3f", regr_summary2$coefficients[15, 5]),
+    R = sprintf("%.2f", regr_summary2$r.squared),
+    adjR = sprintf("%.2f", regr_summary2$adj.r.squared),
+    F_ = round(regr_summary2$fstatistic[1], 2),
+    df = paste0("(", regr_summary2$fstatistic[2], ", ", regr_summary1$fstatistic[3], ")"),
+    F_p = sprintf("%.3f", pf(regr_summary2$fstatistic[1], regr_summary2$fstatistic[2], 
+                           regr_summary2$fstatistic[3], lower.tail = FALSE))
+  ))
+  
+  return(results)
+}
+
+#Function to loop the compile_regression function for combinations of variables.
+loop_compile_mod_regressions <- function(outcome_var, explanatory_var, dataset) {
+  results <- tibble()
+  for(i in 1:length(outcome_var)) {
+    for(j in 1:length(explanatory_var)) {
+      results <- bind_rows(results, 
+                               compile_mod_regressions(outcome_var[i], explanatory_var[j], dataset))
+      }
+  }
+    return(results)
+}
+```
+
+### 4. Relig ~ NFM + CSJAS + CSJASxNFM
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+
+```{r}
+outcome_vars <- c("Relig", "Relig_inter", "Relig_intra")
+expl_vars <- c("CSJAS_cent*NFM_cent")
+
+results4 <- loop_compile_mod_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+# View results
+results4
+```
+
+### 5. CSJAS ~ NFM + Relig + ReligxNFM
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+
+```{r}
+outcome_vars <- c("CSJAS")
+expl_vars <- c("Relig_cent*NFM_cent", "Relig_inter_cent*NFM_cent", "Relig_intra_cent*NFM_cent")
+
+results5 <- loop_compile_mod_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+# View results
+results5
+```
+
+### 6. WB ~ Relig
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+```{r}
+outcome_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+                 "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("Relig", "Relig_inter", "Relig_intra")
+
+results6 <- loop_compile_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+
+print(results6, n = 36)
+```
+
+
+```{r eval = FALSE, echo=FALSE}
+# Define variable names
+outcome_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+             "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("Relig", "Relig_inter", "Relig_intra")
+
+# Function to run regressions using formulas created from strings
+run_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Model 1: Just the explanatory variable
+  print(paste("Model 1:", outcome_var, "~", explanatory_var))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", explanatory_var)), data = dataset)))
+  
+  # Model 2: Add PolLib
+  print(paste("Model 2:", outcome_var, "~", explanatory_var, "+ PolLib"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", explanatory_var, "+ PolLib")), data = dataset)))
+  
+  # Model 3: Add Gender
+  print(paste("Model 3:", outcome_var, "~", explanatory_var, "+ PolLib + Gender"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", explanatory_var, "+ PolLib + Gender")), data = dataset)))
+  
+  # Model 4: Add all controls
+  print(paste("Model 4:", outcome_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", explanatory_var, 
+    "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy + Black_or_Other_dummy +
+    Hispanic_dummy + SocScience_dummy + STEM_dummy + Hum_Educ_dummy + 
+    Other_Undec_dummy")), data = dataset)))
+}
+
+# Run all combinations of outcome and explanatory variables
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j])
+  }
+}
+```
+
+### 7. WB ~ CSJAS
+
+Control variables: political orientation, gender, age, race, sexual orientation, and academic major.
+```{r}
+# Define variable names
+outcome_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+                 "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("CSJAS")
+
+results7 <- loop_compile_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+
+# View results
+results7
+```
+
+# Full output for all analyses
+
+```{r echo = FALSE}
+# Function to run regressions using formulas created from strings
+run_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Model 1: Just the explanatory variable
+  print(paste("Model 1:", outcome_var, "~", explanatory_var))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
+                                    explanatory_var)), data = 
+                     dataset))))
+  
+  # Model 2: Add all controls
+  print(paste("Model 2:", outcome_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
+                                    explanatory_var, 
+    "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+    data = dataset))))
+  cat("\n-------------------\n\n")
+}
+```
+
+### 1. CSJAS ~ NFM
+
+```{r eval = TRUE, echo = FALSE}
+outcome_vars <- c("CSJAS")
+expl_vars <- c("NFM")
+
+# Run all combinations of outcome and explanatory variables
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j], data_for_analysis)
+  }
+}
+```
+
+### 2. Relig ~ NFM
+
+```{r eval = TRUE, echo = FALSE}
+outcome_vars <- c("Relig", "Relig_inter", "Relig_intra")
+expl_vars <- c("NFM")
+
+# Run all combinations of outcome and explanatory variables
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j], data_for_analysis)
+  }
+}
+```
+
+### 3. r(CSJAS, Relig)
+
+```{r echo = FALSE}
+var1 <- c("CSJAS")
+vars2 <- c("Relig", "Relig_inter", "Relig_intra")
+
+# Function to run correlation using strings
+run_corr <- function(variable1, variable2) {
+  # Simple correlation
+  print(paste0("r(", variable1, ", ", variable2, ")"))
+  print(cor.test(data_for_analysis[[variable1]], data_for_analysis[[variable2]], method = "pearson"))
+  
+  # Partial correlation with controls
+  print(paste0("r(", variable1, ", ", variable2, "|controls)"))
+  result <- pcor.test(x = data_for_analysis[[variable1]], 
+                    y = data_for_analysis[[variable2]], 
+                    z = data_for_analysis[, c("PolLib", "Gender", "Age", "Asian_dummy", 
+                                              "Black_or_Other_dummy", "Hispanic_dummy", 
+                                              "SexOrien_dummy", "SocScience_dummy", "STEM_dummy", 
+                                              "Hum_Educ_dummy", "Other_Undec_dummy")],
+                    method = "pearson")
+  print(result)
+  cat("\n-------------------\n\n")
+}
+
+# Run all combinations of variables
+for(i in 1:length(var1)) {
+  for(j in 1:length(vars2)) {
+    run_corr(var1[i], vars2[j])
+  }
+}
+```
+
+### 4. Relig ~ NFM + CSJAS + CSJASxNFM
+
+```{r}
+
+outcome_vars <- c("Relig", "Relig_inter", "Relig_intra")
+
+
+run_mod_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Model 1: Just NFM and CSJAS with interaction
+  print(paste("Model 1:", outcome_var, "~", explanatory_var))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", explanatory_var)), 
+                   data = dataset))))
+  
+  # Model 2: Add all controls
+  print(paste("Model 2:", outcome_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", explanatory_var,
+    "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+    data = dataset))))
+  cat("\n-------------------\n\n")
+}
+
+
+loop_run_mod_regressions <- function(outcome_var, explanatory_var, dataset) {
+  for(i in 1:length(outcome_var)) {
+    for(j in 1:length(explanatory_var)) {
+      run_mod_regressions(outcome_var[i], explanatory_var[j], dataset)
+    }}}
+
+outcome_vars <- c("Relig", "Relig_inter", "Relig_intra")
+expl_vars <- c("CSJAS_cent*NFM_cent")
+
+loop_run_mod_regressions(outcome_vars, expl_vars, data_for_analysis)
+```
+
+### 5. CSJAS ~ NFM + Relig + ReligxNFM
+
+```{r}
+outcome_vars <- c("CSJAS")
+expl_vars <- c("Relig_cent*NFM_cent", "Relig_inter_cent*NFM_cent", "Relig_intra_cent*NFM_cent")
+
+loop_run_mod_regressions(outcome_vars, expl_vars, data_for_analysis)
+```
+
+### 6. WB ~ Relig
+
+```{r}
+# Define variable names
+outcome_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+             "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("Relig", "Relig_inter", "Relig_intra")
+
+# Run all combinations of outcome and explanatory variables
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j], data_for_analysis)
+  }
+}
+```
+
+### 7. WB ~ CSJAS
+
+```{r}
+# Define variable names
+outcome_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+             "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("CSJAS")
+
+# Run all combinations of outcome and explanatory variables
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j], data_for_analysis)
+  }
+}
+```
+
