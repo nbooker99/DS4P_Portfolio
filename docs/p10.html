@@ -300,99 +300,92 @@ $(document).ready(function () {
 which you began them), and should include for each project a description
 of the goal, the product (computer program, hand graph, computer graph,
 etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+and of high quality in terms of writing, grammar, presentation, etc. I
+am a TA for a Cross-Cultural Psychology course. The students have an
+assignment in which they must interview someone from a different
+culture. I’ve been asked to compile all the demographic information
+(i.e., where the interviewees are from) and use the data to create
+interesting and informative visualizations for the class.</p>
 </blockquote>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-hendrerit purus ut dapibus vestibulum. Suspendisse potenti. Cras
-faucibus mauris in leo condimentum lobortis. Cras euismod sollicitudin
-augue, ut venenatis quam placerat eu. Maecenas vulputate rhoncus odio,
-in interdum risus malesuada gravida. Maecenas cursus sed dui sit amet
-lacinia. Nunc dignissim metus nec ex mattis, non rutrum urna cursus.
-Morbi pretium elementum purus, in aliquet libero eleifend ac. Nam
-finibus, ligula sed ultrices pharetra, tellus risus consequat tortor,
-facilisis maximus elit lectus a metus. Sed vel dictum nulla, vitae
-blandit turpis. Integer pulvinar tempor diam ac venenatis. Vestibulum
-est lacus, suscipit et ipsum nec, consectetur iaculis leo. Morbi libero
-lacus, scelerisque non sollicitudin vitae, accumsan sed tellus.
-Suspendisse quis orci tellus.</p>
-<div id="r-markdown" class="section level2">
-<h2>R Markdown</h2>
-<p>This is an R Markdown document. Markdown is a simple formatting
-syntax for authoring HTML, PDF, and MS Word documents. For more details
-on using R Markdown see <a href="http://rmarkdown.rstudio.com"
-class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be
-generated that includes both content as well as the output of any
-embedded R code chunks within the document. You can embed an R code
-chunk like this:</p>
-<pre class="r"><code>summary(cars)</code></pre>
-<pre><code>##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00</code></pre>
-<p>Maecenas luctus convallis efficitur. Vestibulum pharetra laoreet nibh
-non congue. Etiam ornare, neque sit amet condimentum aliquet, odio ipsum
-porttitor elit, eu malesuada turpis augue sit amet arcu. Integer nec
-quam et massa congue tincidunt. Donec sit amet diam placerat, pharetra
-quam nec, ornare nisl. Quisque erat turpis, imperdiet eget tellus non,
-interdum ultricies nisi. Fusce a erat est. Nunc sollicitudin ante non
-eros vulputate, sed eleifend nulla hendrerit. Nam ac quam nulla.
-Praesent a ligula a justo auctor tristique ac vel neque. Class aptent
-taciti sociosqu ad litora torquent per conubia nostra, per inceptos
-himenaeos. Quisque tempor felis sed lorem efficitur volutpat. Aliquam
-lectus diam, lacinia vitae velit eget, pulvinar porta massa. Curabitur
-nec egestas mi.</p>
+<div id="loading-tidyverse" class="section level2">
+<h2>Loading tidyverse</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
 </div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<p><img src="p10_files/figure-html/pressure-1.png" width="672" /></p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the
-code chunk to prevent printing of the R code that generated the
-plot.</p>
-<p>Morbi tincidunt mollis odio sit amet feugiat. Ut vel risus eu ante
-dictum consequat. Integer et luctus mauris. Donec nec faucibus urna, sed
-commodo risus. Nam elementum pulvinar erat, eget convallis est blandit
-vel. Etiam gravida sapien eu massa hendrerit maximus. Proin dolor quam,
-porta vitae libero non, venenatis porta tellus. Vivamus et elit a est
-aliquet consequat. Proin tempus, purus quis suscipit placerat, dui nunc
-euismod dui, sit amet luctus leo lectus in risus. Phasellus consectetur
-eleifend arcu. Nullam venenatis blandit nulla ut ullamcorper. Vestibulum
-eu arcu quis massa scelerisque sodales in ac augue. Quisque dapibus
-fringilla turpis, ut cursus tortor cursus sed. Sed facilisis quam eget
-neque viverra venenatis. Suspendisse ut lorem nec erat elementum
-bibendum. Curabitur lobortis purus in cursus blandit.</p>
-<p>Aliquam sed ex et lorem consequat feugiat at porta leo. Fusce id
-hendrerit tellus. Maecenas dictum felis neque, quis dictum metus
-tristique eu. Vivamus sed blandit nisl. Integer ut urna dolor. Cras in
-egestas eros, in aliquam nisi. Duis vitae elementum quam. Vivamus vel
-turpis commodo, porttitor urna vitae, viverra sem. Nam nec dignissim
-erat, id viverra libero. Integer vel lectus pellentesque tortor
-fringilla posuere. Vivamus quis magna accumsan, porta tortor at, aliquam
-urna. Aliquam vestibulum ante massa, ut gravida lectus sagittis
-vitae.</p>
-<p>Sed eget ipsum auctor, gravida magna sit amet, tincidunt mi. Nulla
-erat ante, volutpat nec sem eget, luctus posuere est. Praesent convallis
-nunc ac turpis bibendum, in maximus magna convallis. Vestibulum ante
-ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
-Sed sit amet nulla ante. Sed elit sem, lobortis nec nisi a, rhoncus
-ornare nunc. Curabitur ultrices neque feugiat, facilisis magna eu,
-consectetur magna. Mauris id eleifend ex.</p>
-<p>Morbi tincidunt mollis odio sit amet feugiat. Ut vel risus eu ante
-dictum consequat. Integer et luctus mauris. Donec nec faucibus urna, sed
-commodo risus. Nam elementum pulvinar erat, eget convallis est blandit
-vel. Etiam gravida sapien eu massa hendrerit maximus. Proin dolor quam,
-porta vitae libero non, venenatis porta tellus. Vivamus et elit a est
-aliquet consequat. Proin tempus, purus quis suscipit placerat, dui nunc
-euismod dui, sit amet luctus leo lectus in risus. Phasellus consectetur
-eleifend arcu. Nullam venenatis blandit nulla ut ullamcorper. Vestibulum
-eu arcu quis massa scelerisque sodales in ac augue. Quisque dapibus
-fringilla turpis, ut cursus tortor cursus sed. Sed facilisis quam eget
-neque viverra venenatis. Suspendisse ut lorem nec erat elementum
-bibendum. Curabitur lobortis purus in cursus blandit.</p>
+<div id="creating-the-dataset." class="section level2">
+<h2>Creating the dataset.</h2>
+<p>All the data for the dataset is contained on printed out and
+handwritten demographic forms. I consulted Claude to see how best to
+create the dataset. After considering the first option (Approach 1
+below), I asked about more efficient ways to create the dataset,
+eventually landing on Approach 3.</p>
+<div id="approach-1." class="section level3">
+<h3>Approach 1.</h3>
+<p>First, create empty dataset.</p>
+<pre class="r"><code>interviewee_demographics &lt;- tibble(
+  age = numeric(),
+  gender = factor(levels = c(&quot;Male&quot;, &quot;Female&quot;)),
+  race = character(),
+  profession_or_major = character(),
+  birth_country = character(),
+  length_res = numeric(),
+  year_moved = numeric()
+)</code></pre>
+<p>Then, edit dataset to add rows for each observation.</p>
+<pre class="r"><code>interviewee_demographics &lt;- interviewee_demographics %&gt;%
+  add_row(
+    age = 33,
+    gender = &quot;Female&quot;,
+    race = &quot;Black or African American&quot;,
+    profession_or_major = &quot;Professor&quot;,
+    birth_country = &quot;Guyana&quot;,
+    length_res = 2,
+    year_moved = 2023
+  )</code></pre>
+<p>Check dataset.</p>
+<pre class="r"><code>interviewee_demographics</code></pre>
+<pre><code>## # A tibble: 1 × 7
+##     age gender race      profession_or_major birth_country length_res year_moved
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;chr&gt;               &lt;chr&gt;              &lt;dbl&gt;      &lt;dbl&gt;
+## 1    33 Female Black or… Professor           Guyana                 2       2023</code></pre>
+<p>I then asked Claude is there a way more efficient method of data
+entry in R, saying that, if not, it would seem best to just create the
+dataset in Excel and then import it into R.</p>
+<p>Claude agreed that using Excel would probably be best, but gave me
+two other option for quicker data entry in R.</p>
+</div>
+<div id="approach-2." class="section level3">
+<h3>Approach 2.</h3>
+<p>This one doesn’t work and makes RStudio freeze. Thanks Claude!</p>
+<pre class="r"><code># Create empty dataframe with your structure
+interviewee_demographics &lt;- tibble(
+  age = numeric(),
+  gender = character(),
+  race = character(),
+  profession_or_major = character(),
+  birth_country = character(),
+  length_res = numeric(),
+  year_moved = numeric()
+)
+
+# Then use this to open a data entry window
+interviewee_demographics &lt;- edit(interviewee_demographics)</code></pre>
+</div>
+<div id="approach-3." class="section level3">
+<h3>Approach 3.</h3>
+<p>This appraoch is much better than the two approaches above, but I
+still think Excel is easier.</p>
+<pre class="r"><code>interviewee_demographics &lt;- tribble(
+  ~age, ~gender, ~race, ~profession_or_major, ~birth_country, ~length_res, ~year_moved,
+  25,   &quot;Female&quot;, &quot;Asian&quot;, &quot;Computer Science&quot;, &quot;Japan&quot;, 7, 2018,
+  30,   &quot;Male&quot;,   &quot;Black&quot;, &quot;Engineering&quot;, &quot;Nigeria&quot;, 5, 2020,
+  # Add more rows as needed
+)</code></pre>
+</div>
+<div id="approach-4." class="section level3">
+<h3>Approach 4.</h3>
+<pre class="r"><code>library(readxl)
+interviewee_demographics &lt;- read_excel(&quot;data/interviewee_demographics.xlsx&quot;)</code></pre>
+</div>
 </div>
 
 

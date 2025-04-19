@@ -49,7 +49,8 @@ I then asked Claude is there a way more efficient method of data entry in R, say
 Claude agreed that using Excel would probably be best, but gave me two other option for quicker data entry in R.
 
 ### Approach 2.
-```{r}
+This one doesn't work and makes RStudio freeze. Thanks Claude!
+```{r eval=FALSE}
 # Create empty dataframe with your structure
 interviewee_demographics <- tibble(
   age = numeric(),
@@ -63,5 +64,22 @@ interviewee_demographics <- tibble(
 
 # Then use this to open a data entry window
 interviewee_demographics <- edit(interviewee_demographics)
+```
+
+### Approach 3.
+This appraoch is much better than the two approaches above, but I still think Excel is easier.
+```{r}
+interviewee_demographics <- tribble(
+  ~age, ~gender, ~race, ~profession_or_major, ~birth_country, ~length_res, ~year_moved,
+  25,   "Female", "Asian", "Computer Science", "Japan", 7, 2018,
+  30,   "Male",   "Black", "Engineering", "Nigeria", 5, 2020,
+  # Add more rows as needed
+)
+```
+
+### Approach 4.
+```{r}
+library(readxl)
+interviewee_demographics <- read_excel("data/interviewee_demographics.xlsx")
 ```
 
