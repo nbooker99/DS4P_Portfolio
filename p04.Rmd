@@ -8,11 +8,15 @@ output:
     code_folding: show
 ---
 
-> The goal of this project is to clean a dataset for one of my thesis studies. The dataset comes directly as it was downloaded from Qualtrics. I will clean the dataset by removing cases according to the criteria that I preregistered. I'll also combine item scores into variables and combine variables into a composite variable. The overall goal is to create a dataset that is ready for analyses.
+## Goal
+
+> The goal of this project is to clean a dataset for one of my thesis studies. The dataset comes directly as it was downloaded from Qualtrics. I will clean the dataset by removing cases according to the criteria from my preregisteration. I'll also combine item scores into variables and combine certain well-being variables into a composite well-being variable. The overall goal is to create a dataset that is ready for analyses.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Importing Data
 
 ```{r}
 library(tidyverse)
@@ -40,7 +44,7 @@ qualtrics_data <- qualtrics_data %>%
 #n = 157
 ```
 
-### Removing duplicates
+## Removing duplicates
 
 ```{r}
 #A technical issue in which the SONA study was not automatically granting participants credit 
@@ -285,10 +289,11 @@ qualtrics_data <- qualtrics_data %>%
 #DEVIATING FROM PREREGISTRATION
 # Create z-score version of WellBeing
 WB_outlier <- qualtrics_data %>%
-  mutate(WellBeing_z = abs(scale(WellBeing)[,1])) %>% 
+  mutate(WellBeing_z = round(abs(scale(WellBeing)[,1]), 2)) %>% 
   dplyr::select(WellBeing_z, id) %>% 
   arrange(desc(WellBeing_z))
-WB_outlier
+WB_outlier %>% 
+  head()
 #During analyses, I discovered that this participant was dramatically skewing results.
 #Excluding this case.
 qualtrics_data <- qualtrics_data %>%

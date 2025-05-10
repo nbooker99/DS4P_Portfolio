@@ -1,5 +1,5 @@
 ---
-title: "Portfolio 5"
+title: "Using Functions and Loops to Compile Many Regression Analyses"
 output: 
   html_document:
     theme: cosmo
@@ -8,11 +8,37 @@ output:
     code_folding: show
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+## Goal
+
+> The goal of this project is to use functions and loops to run many regression analyses. 
+
+> The data is from a study which, in part, measures the association between religiosity and well-being. The well-being variable was a composite of five different measures of well-being (depression, anxiety, life satisfaction, postive affect, and negative affect). Because the preregistration for the study specified that separate regression analyses would be run for each of the constituent well-being variables, and for the two subscales of the religiosity scale, and again with models containing demographic control variables, the number of regression analyses to run for a single hypothesis about the relationship between religiosity and well-being became burdensome. This was the reason for attempting to create a function to run different versions of a regression model (including and excluding control variables) and a loop which would run the function for each combination of explanatory and outcome variable.
+
+> At the end, I will demonstrate the function with an example, interpret the results of the regression analyses, and reflect on the usefulness of the function.
+
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 ```
+
+```{r message=FALSE}
+library(tidyverse)
+library(haven)
+library(lm.beta)
+data_for_analysis <- read_sav("data/data_for_analysis.sav")
+```
+
+## 1. First Attempt
+
+Linn helped me create the code below. It doesn't work, but it provided the foundation.
+
+First, I create two vectors which contain the names of variables in my dataset. One represents the outcome variables (well-being variables), and the other represents the explanatory variables—CSJAS (scores on a Critical Social Justice Attitudes Scale), religiosity, and two religiosity subscales (interpersonal religiosity and intrapersonal religiosity).
+
+Then I create a function called run_regressions which accepts the previously defined vectors as arguments, and plugs them into four different regression models. The first model is a single predictor regression model. The second model adds political orientation as a control variable. The third model adds gender to the model as a control variable. And the fourth model adds dummy variables for sexual orientation, race, and academic major as control variables.
+
+Then, the last part creates a nested loop which, in the outer loop, iterates through each of six well-being variables, and, in the inner loop, iterates through each of the four explanatory variables, and passes all the combinations through the run_regressions function.
+
+The end result is meant to be the output of all the regression analyses. However, there are issues with thise code that had to be resolved.
 
 ```{r eval = FALSE}
 WB_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
@@ -36,14 +62,19 @@ for(i in 1:length(WB_vars)) {
 }
 ```
 
+## 2. Help from Claude.ai
 
-Claude.ai: I see a few issues with your code that need to be fixed for it to work properly. Let me explain:
+I asked Claude.ai to help me troubleshoot the code.
 
-The main issue is in your run_regressions() function. When you pass variables like WB_vars[i] and expl_vars[j], these are just strings containing variable names, not the actual variables themselves. The formula notation in lm() expects actual variable names, not strings.
+Claude.ai: 
+
+> I see a few issues with your code that need to be fixed for it to work properly. Let me explain:
+
+> The main issue is in your run_regressions() function. When you pass variables like WB_vars[i] and expl_vars[j], these are just strings containing variable names, not the actual variables themselves. The formula notation in lm() expects actual variable names, not strings.
 You're trying to use WB_vars and expl_vars directly in the formula, but you're passing them as parameters to the function.
 The data_for_analysis dataset is referenced but not defined in the code shown.
 
-Here's a corrected version:
+> Here's a corrected version:
 
 ```{r eval = FALSE}
 # Define variable names
@@ -85,16 +116,29 @@ for(i in 1:length(WB_vars)) {
 }
 ```
 
-Claude: The key changes are:
+Claude: 
 
-Added quotes around variable names in your vectors
-Modified the function to build formula strings and convert them to formulas using as.formula()
-Added the data parameter to the function
-Added some print statements to help identify which model is being run
+> The key changes are:
 
-Make sure your data_for_analysis dataframe exists and contains all the variables referenced in the code.
+> • Added quotes around variable names in your vectors
 
-```{r}
+> • Modified the function to build formula strings and convert them to formulas using as.formula()
+
+> • Added the data parameter to the function
+
+> • Added some print statements to help identify which model is being run
+
+> Make sure your data_for_analysis dataframe exists and contains all the variables referenced in the code.
+
+These changes from Claude made the code functional. However, I tweaked a few things that seemed to me to remove some unnessessary steps. See below.
+
+## 3. Version 3
+
+Here, I removed the part of the code above which assigned the formulas to "formula1, formula2" etc. and just moved that bit directly inside the lm() function.
+
+Also, because all my analyses would be using data from the same dataset, I removed data as an argument of the function and just built the dataset into the function.
+
+```{r eval = FALSE}
 # Define variable names
 WB_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
              "PosAffect_POMP", "NegAffect_POMP")
@@ -129,3 +173,61 @@ for(i in 1:length(WB_vars)) {
   }
 }
 ```
+
+The above code also works, but it is not the code that I wound up using.
+
+## 4. Working Version
+
+I made some changes to the code above.
+
+First, I realized that in the examples above, I would have to examine 6 (well-being variables) x 4 (explanatory variables) x 4 (different models) = 96 different regression outputs.
+
+Instead, I decided to have one single-predictor regression model and another model which added all demographic control variables at once.
+
+I also added code (cat("\n-------------------\n\n")) which adds a line to separate the output of each iterartion to make the output easier to read.
+
+```{r echo = FALSE}
+
+# Function to run regressions using formulas created from strings
+run_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Model 1: Just the explanatory variable
+  print(paste("Model 1:", outcome_var, "~", explanatory_var))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
+                                    explanatory_var)), data = 
+                     dataset))))
+  
+  # Model 2: Add all controls
+  print(paste("Model 2:", outcome_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
+                                    explanatory_var, 
+    "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+    data = dataset))))
+  cat("\n----------------------------------------------------\n\n")
+}
+```
+
+## Example
+
+Below is an example of the loop and function in action. So that there is not too much output to interpret, I plug in a set of variables which tests a different hyothesis from the study than the one previously described.
+
+The hypothesis is that individual differences in the need for meaning (NFM) will be postively correlated with religiosity (with separate analyses for religiosity and each of its subscales and for models excluding and including demographic control variables).
+
+```{r}
+outcome_vars <- c("Relig", "Relig_inter", "Relig_intra")
+expl_vars <- c("NFM")
+
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j], data_for_analysis)
+  }
+}
+```
+
+## Interpretation
+
+From the output above, we can see the NFM significantly postivley predicted religiosity (standardized beta = .33, p < .001). It remained signficant in a model with all control variables (politcal orientation, gender, age, sexual orientation, race/ethnicity, and academic major). The same was true for the models predicting interpersonal and intrapersonal religiosity subscales.
+
+This function became very useful because I had several other hypotheses to test which also required (per my pregistration) many regression analyses, for example, for different well-being variables; and every regression analysis was run once without control variables and once with control variables.
+

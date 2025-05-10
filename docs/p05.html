@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio 5</title>
+<title>Using Functions and Loops to Compile Many Regression Analyses</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,18 +378,68 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Portfolio 5</h1>
+<h1 class="title toc-ignore">Using Functions and Loops to Compile Many
+Regression Analyses</h1>
 
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>The goal of this project is to use functions and loops to run many
+regression analyses.</p>
 </blockquote>
+<blockquote>
+<p>The data is from a study which, in part, measures the association
+between religiosity and well-being. The well-being variable was a
+composite of five different measures of well-being (depression, anxiety,
+life satisfaction, postive affect, and negative affect). Because the
+preregistration for the study specified that separate regression
+analyses would be run for each of the constituent well-being variables,
+and for the two subscales of the religiosity scale, and again with
+models containing demographic control variables, the number of
+regression analyses to run for a single hypothesis about the
+relationship between religiosity and well-being became burdensome. This
+was the reason for attempting to create a function to run different
+versions of a regression model (including and excluding control
+variables) and a loop which would run the function for each combination
+of explanatory and outcome variable.</p>
+</blockquote>
+<blockquote>
+<p>At the end, I will demonstrate the function with an example,
+interpret the results of the regression analyses, and reflect on the
+usefulness of the function.</p>
+</blockquote>
+<pre class="r"><code>library(tidyverse)
+library(haven)
+library(lm.beta)
+data_for_analysis &lt;- read_sav(&quot;data/data_for_analysis.sav&quot;)</code></pre>
+</div>
+<div id="first-attempt" class="section level2">
+<h2>1. First Attempt</h2>
+<p>Linn helped me create the code below. It doesn’t work, but it
+provided the foundation.</p>
+<p>First, I create two vectors which contain the names of variables in
+my dataset. One represents the outcome variables (well-being variables),
+and the other represents the explanatory variables—CSJAS (scores on a
+Critical Social Justice Attitudes Scale), religiosity, and two
+religiosity subscales (interpersonal religiosity and intrapersonal
+religiosity).</p>
+<p>Then I create a function called run_regressions which accepts the
+previously defined vectors as arguments, and plugs them into four
+different regression models. The first model is a single predictor
+regression model. The second model adds political orientation as a
+control variable. The third model adds gender to the model as a control
+variable. And the fourth model adds dummy variables for sexual
+orientation, race, and academic major as control variables.</p>
+<p>Then, the last part creates a nested loop which, in the outer loop,
+iterates through each of six well-being variables, and, in the inner
+loop, iterates through each of the four explanatory variables, and
+passes all the combinations through the run_regressions function.</p>
+<p>The end result is meant to be the output of all the regression
+analyses. However, there are issues with thise code that had to be
+resolved.</p>
 <pre class="r"><code>WB_vars &lt;- c(&quot;WellBeing&quot;, &quot;Anxiety_POMP&quot;, &quot;Depression_POMP&quot;, &quot;LifeSatisf_POMP&quot;, 
              &quot;PosAffect_POMP&quot;, &quot;NegAffect_POMP&quot;)
 expl_vars &lt;- c(&quot;CSJAS&quot;, &quot;Relig&quot;, &quot;Relig_inter&quot;, &quot;Relig_intra&quot;)
@@ -409,8 +459,16 @@ for(i in 1:length(WB_vars)) {
     run_regressions(WB_vars[i], expl_vars[j])
   }
 }</code></pre>
-<p>Claude.ai: I see a few issues with your code that need to be fixed
-for it to work properly. Let me explain:</p>
+</div>
+<div id="help-from-claude.ai" class="section level2">
+<h2>2. Help from Claude.ai</h2>
+<p>I asked Claude.ai to help me troubleshoot the code.</p>
+<p>Claude.ai:</p>
+<blockquote>
+<p>I see a few issues with your code that need to be fixed for it to
+work properly. Let me explain:</p>
+</blockquote>
+<blockquote>
 <p>The main issue is in your run_regressions() function. When you pass
 variables like WB_vars[i] and expl_vars[j], these are just strings
 containing variable names, not the actual variables themselves. The
@@ -418,7 +476,10 @@ formula notation in lm() expects actual variable names, not strings.
 You’re trying to use WB_vars and expl_vars directly in the formula, but
 you’re passing them as parameters to the function. The data_for_analysis
 dataset is referenced but not defined in the code shown.</p>
+</blockquote>
+<blockquote>
 <p>Here’s a corrected version:</p>
+</blockquote>
 <pre class="r"><code># Define variable names
 WB_vars &lt;- c(&quot;WellBeing&quot;, &quot;Anxiety_POMP&quot;, &quot;Depression_POMP&quot;, &quot;LifeSatisf_POMP&quot;, 
              &quot;PosAffect_POMP&quot;, &quot;NegAffect_POMP&quot;)
@@ -456,13 +517,40 @@ for(i in 1:length(WB_vars)) {
     run_regressions(WB_vars[i], expl_vars[j], data_for_analysis)
   }
 }</code></pre>
-<p>Claude: The key changes are:</p>
-<p>Added quotes around variable names in your vectors Modified the
-function to build formula strings and convert them to formulas using
-as.formula() Added the data parameter to the function Added some print
-statements to help identify which model is being run</p>
+<p>Claude:</p>
+<blockquote>
+<p>The key changes are:</p>
+</blockquote>
+<blockquote>
+<p>• Added quotes around variable names in your vectors</p>
+</blockquote>
+<blockquote>
+<p>• Modified the function to build formula strings and convert them to
+formulas using as.formula()</p>
+</blockquote>
+<blockquote>
+<p>• Added the data parameter to the function</p>
+</blockquote>
+<blockquote>
+<p>• Added some print statements to help identify which model is being
+run</p>
+</blockquote>
+<blockquote>
 <p>Make sure your data_for_analysis dataframe exists and contains all
 the variables referenced in the code.</p>
+</blockquote>
+<p>These changes from Claude made the code functional. However, I
+tweaked a few things that seemed to me to remove some unnessessary
+steps. See below.</p>
+</div>
+<div id="version-3" class="section level2">
+<h2>3. Version 3</h2>
+<p>Here, I removed the part of the code above which assigned the
+formulas to “formula1, formula2” etc. and just moved that bit directly
+inside the lm() function.</p>
+<p>Also, because all my analyses would be using data from the same
+dataset, I removed data as an argument of the function and just built
+the dataset into the function.</p>
 <pre class="r"><code># Define variable names
 WB_vars &lt;- c(&quot;WellBeing&quot;, &quot;Anxiety_POMP&quot;, &quot;Depression_POMP&quot;, &quot;LifeSatisf_POMP&quot;, 
              &quot;PosAffect_POMP&quot;, &quot;NegAffect_POMP&quot;)
@@ -496,6 +584,223 @@ for(i in 1:length(WB_vars)) {
     run_regressions(WB_vars[i], expl_vars[j])
   }
 }</code></pre>
+<p>The above code also works, but it is not the code that I wound up
+using.</p>
+</div>
+<div id="working-version" class="section level2">
+<h2>4. Working Version</h2>
+<p>I made some changes to the code above.</p>
+<p>First, I realized that in the examples above, I would have to examine
+6 (well-being variables) x 4 (explanatory variables) x 4 (different
+models) = 96 different regression outputs.</p>
+<p>Instead, I decided to have one single-predictor regression model and
+another model which added all demographic control variables at once.</p>
+<p>I also added code (cat(“——————-”)) which adds a line to separate the
+output of each iterartion to make the output easier to read.</p>
+</div>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<p>Below is an example of the loop and function in action. So that there
+is not too much output to interpret, I plug in a set of variables which
+tests a different hyothesis from the study than the one previously
+described.</p>
+<p>The hypothesis is that individual differences in the need for meaning
+(NFM) will be postively correlated with religiosity (with separate
+analyses for religiosity and each of its subscales and for models
+excluding and including demographic control variables).</p>
+<pre class="r"><code>outcome_vars &lt;- c(&quot;Relig&quot;, &quot;Relig_inter&quot;, &quot;Relig_intra&quot;)
+expl_vars &lt;- c(&quot;NFM&quot;)
+
+for(i in 1:length(outcome_vars)) {
+  for(j in 1:length(expl_vars)) {
+    run_regressions(outcome_vars[i], expl_vars[j], data_for_analysis)
+  }
+}</code></pre>
+<pre><code>## [1] &quot;Model 1: Relig ~ NFM&quot;
+## 
+## Call:
+## lm(formula = as.formula(paste(outcome_var, &quot;~&quot;, explanatory_var)), 
+##     data = dataset)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.6660 -0.9202 -0.1426  0.7309  2.3826 
+## 
+## Coefficients:
+##             Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.1682           NA     0.5761  -0.292    0.771    
+## NFM           0.4972       0.3319     0.1169   4.252 3.76e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.037 on 146 degrees of freedom
+## Multiple R-squared:  0.1102, Adjusted R-squared:  0.1041 
+## F-statistic: 18.08 on 1 and 146 DF,  p-value: 3.764e-05
+## 
+## [1] &quot;Model 2: Relig ~ NFM + all controls&quot;
+## 
+## Call:
+## lm(formula = as.formula(paste(outcome_var, &quot;~&quot;, explanatory_var, 
+##     &quot;+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +\n    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + \n    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy&quot;)), 
+##     data = dataset)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.97060 -0.74585 -0.07402  0.60720  2.21472 
+## 
+## Coefficients:
+##                       Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+## (Intercept)           0.926132           NA   1.776413   0.521 0.602978    
+## NFM                   0.386767     0.258201   0.125186   3.090 0.002435 ** 
+## PolLib               -0.237529    -0.307614   0.064945  -3.657 0.000364 ***
+## Gender                0.266647     0.120525   0.194270   1.373 0.172165    
+## Age                   0.001816     0.001675   0.085919   0.021 0.983167    
+## SexOrien_dummy        0.366270     0.080191   0.354090   1.034 0.302800    
+## Asian_dummy          -0.060566    -0.016238   0.289333  -0.209 0.834507    
+## Black_or_Other_dummy  0.264973     0.066261   0.316648   0.837 0.404181    
+## Hispanic_dummy       -0.304478    -0.073166   0.321412  -0.947 0.345171    
+## SocScience_dummy      0.247679     0.091219   0.238710   1.038 0.301324    
+## STEM_dummy           -0.036974    -0.015043   0.230750  -0.160 0.872935    
+## Hum_Educ_dummy       -0.172022    -0.041337   0.361378  -0.476 0.634831    
+## Other_Undec_dummy    -0.337239    -0.105622   0.269683  -1.251 0.213280    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.9943 on 135 degrees of freedom
+## Multiple R-squared:  0.2431, Adjusted R-squared:  0.1759 
+## F-statistic: 3.614 on 12 and 135 DF,  p-value: 0.0001071
+## 
+## 
+## ----------------------------------------------------
+## 
+## [1] &quot;Model 1: Relig_inter ~ NFM&quot;
+## 
+## Call:
+## lm(formula = as.formula(paste(outcome_var, &quot;~&quot;, explanatory_var)), 
+##     data = dataset)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.69691 -0.91732 -0.09056  0.73619  2.73619 
+## 
+## Coefficients:
+##             Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  0.09826           NA    0.56485   0.174  0.86214    
+## NFM          0.43311      0.29836    0.11466   3.777  0.00023 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.017 on 146 degrees of freedom
+## Multiple R-squared:  0.08902,    Adjusted R-squared:  0.08278 
+## F-statistic: 14.27 on 1 and 146 DF,  p-value: 0.0002303
+## 
+## [1] &quot;Model 2: Relig_inter ~ NFM + all controls&quot;
+## 
+## Call:
+## lm(formula = as.formula(paste(outcome_var, &quot;~&quot;, explanatory_var, 
+##     &quot;+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +\n    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + \n    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy&quot;)), 
+##     data = dataset)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.8850 -0.6713 -0.0607  0.6163  2.7244 
+## 
+## Coefficients:
+##                       Estimate Standardized Std. Error t value Pr(&gt;|t|)   
+## (Intercept)           1.062933           NA   1.763179   0.603  0.54762   
+## NFM                   0.355342     0.244790   0.124254   2.860  0.00491 **
+## PolLib               -0.179007    -0.239220   0.064461  -2.777  0.00627 **
+## Gender                0.245141     0.114339   0.192823   1.271  0.20580   
+## Age                  -0.009390    -0.008937   0.085278  -0.110  0.91248   
+## SexOrien_dummy        0.575788     0.130084   0.351452   1.638  0.10369   
+## Asian_dummy          -0.223842    -0.061929   0.287177  -0.779  0.43708   
+## Black_or_Other_dummy  0.059708     0.015407   0.314289   0.190  0.84961   
+## Hispanic_dummy       -0.332466    -0.082440   0.319018  -1.042  0.29920   
+## SocScience_dummy      0.291748     0.110877   0.236931   1.231  0.22033   
+## STEM_dummy           -0.103892    -0.043617   0.229031  -0.454  0.65083   
+## Hum_Educ_dummy       -0.193989    -0.048102   0.358686  -0.541  0.58951   
+## Other_Undec_dummy    -0.331529    -0.107146   0.267674  -1.239  0.21766   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.9869 on 135 degrees of freedom
+## Multiple R-squared:  0.206,  Adjusted R-squared:  0.1355 
+## F-statistic: 2.919 on 12 and 135 DF,  p-value: 0.001258
+## 
+## 
+## ----------------------------------------------------
+## 
+## [1] &quot;Model 1: Relig_intra ~ NFM&quot;
+## 
+## Call:
+## lm(formula = as.formula(paste(outcome_var, &quot;~&quot;, explanatory_var)), 
+##     data = dataset)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.8400 -0.9884 -0.2274  0.8126  2.6953 
+## 
+## Coefficients:
+##             Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.3458           NA     0.6200  -0.558    0.578    
+## NFM           0.5400       0.3346     0.1259   4.290 3.23e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.116 on 146 degrees of freedom
+## Multiple R-squared:  0.1119, Adjusted R-squared:  0.1059 
+## F-statistic: 18.41 on 1 and 146 DF,  p-value: 3.233e-05
+## 
+## [1] &quot;Model 2: Relig_intra ~ NFM + all controls&quot;
+## 
+## Call:
+## lm(formula = as.formula(paste(outcome_var, &quot;~&quot;, explanatory_var, 
+##     &quot;+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +\n    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + \n    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy&quot;)), 
+##     data = dataset)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.0276 -0.7840 -0.1500  0.6594  2.5396 
+## 
+## Coefficients:
+##                       Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+## (Intercept)           0.834932           NA   1.901440   0.439 0.661287    
+## NFM                   0.407716     0.252640   0.133997   3.043 0.002818 ** 
+## PolLib               -0.276544    -0.332421   0.069516  -3.978 0.000113 ***
+## Gender                0.280985     0.117885   0.207943   1.351 0.178873    
+## Age                   0.009287     0.007950   0.091966   0.101 0.919712    
+## SexOrien_dummy        0.226592     0.046047   0.379012   0.598 0.550942    
+## Asian_dummy           0.048285     0.012016   0.309696   0.156 0.876336    
+## Black_or_Other_dummy  0.401816     0.093265   0.338934   1.186 0.237892    
+## Hispanic_dummy       -0.285820    -0.063750   0.344034  -0.831 0.407559    
+## SocScience_dummy      0.218299     0.074625   0.255511   0.854 0.394416    
+## STEM_dummy            0.007637     0.002884   0.246991   0.031 0.975378    
+## Hum_Educ_dummy       -0.157378    -0.035102   0.386813  -0.407 0.684756    
+## Other_Undec_dummy    -0.341045    -0.099143   0.288664  -1.181 0.239496    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.064 on 135 degrees of freedom
+## Multiple R-squared:  0.2529, Adjusted R-squared:  0.1865 
+## F-statistic: 3.809 on 12 and 135 DF,  p-value: 5.347e-05
+## 
+## 
+## ----------------------------------------------------</code></pre>
+</div>
+<div id="interpretation" class="section level2">
+<h2>Interpretation</h2>
+<p>From the output above, we can see the NFM significantly postivley
+predicted religiosity (standardized beta = .33, p &lt; .001). It
+remained signficant in a model with all control variables (politcal
+orientation, gender, age, sexual orientation, race/ethnicity, and
+academic major). The same was true for the models predicting
+interpersonal and intrapersonal religiosity subscales.</p>
+<p>This function became very useful because I had several other
+hypotheses to test which also required (per my pregistration) many
+regression analyses, for example, for different well-being variables;
+and every regression analysis was run once without control variables and
+once with control variables.</p>
+</div>
 
 
 

@@ -7,6 +7,10 @@ output:
     toc_float: true
     code_folding: show
 ---
+## Goal
+
+> The goal of this project is to demonstrate how the products projects 5 and 6 
+
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
 
@@ -456,26 +460,7 @@ results7
 
 # Full output for all analyses
 
-```{r echo = FALSE}
-# Function to run regressions using formulas created from strings
-run_regressions <- function(outcome_var, explanatory_var, dataset) {
-  # Model 1: Just the explanatory variable
-  print(paste("Model 1:", outcome_var, "~", explanatory_var))
-  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
-                                    explanatory_var)), data = 
-                     dataset))))
-  
-  # Model 2: Add all controls
-  print(paste("Model 2:", outcome_var, "~", explanatory_var, "+ all controls"))
-  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
-                                    explanatory_var, 
-    "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
-    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
-    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
-    data = dataset))))
-  cat("\n-------------------\n\n")
-}
-```
+x
 
 ### 1. CSJAS ~ NFM
 

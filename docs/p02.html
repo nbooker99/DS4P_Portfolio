@@ -11,7 +11,7 @@
 
 
 
-<title>Project 2: A Somewhat Complicated Case of Wide-to-Long</title>
+<title>A Somewhat Complicated Case of Wide-to-Long</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,20 +378,22 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Project 2: A Somewhat Complicated Case of
+<h1 class="title toc-ignore">A Somewhat Complicated Case of
 Wide-to-Long</h1>
 
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
 <p>My goal in this project is to use R to take the dataset you see below
 (with 17 variables, none of them called polarization) and transform it
-into a dataset that I can use to make the graph you see (further) below,
+into a dataset that I can use to make the graph you see further below,
 of which polarization is the dependent variable. That’s my graph from
-Portfolio Project 1, and I did all the necessary data restructuring
-stuff in SPSS in order to make it. The goal of this project is to
-challenge myself to learn how to do it in R.</p>
+Portfolio Project 1. I did all the necessary data restructuring in SPSS
+in order to make it. The goal of this project is to challenge myself to
+learn how to do it in R.</p>
 </blockquote>
 <pre class="r"><code>library(tidyverse)
 library(haven)
@@ -431,15 +433,16 @@ ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(p
   ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
   theme_minimal()</code></pre>
 <p><img src="p02_files/figure-html/laod%20packages%20and%20import%20data-1.png" width="672" /></p>
+</div>
 <div id="before-and-after-datasets-a-glimpse-of-the-goal"
-class="section level3">
-<h3>“Before and After” Datasets: A Glimpse of the Goal</h3>
+class="section level2">
+<h2>“Before and After” Datasets: A Glimpse of the Goal</h2>
 <p>First, check out the “Before” dataset again above (named wide_data).
 It has 100 observations (each representing a participant) with scores on
 17 variables. The names of many of those variables (e.g., prej_preD,
 discr_postR, and stereo_postD) denote the kind of attitude that was
 measured (prejudicial, discriminatory, or stereotype), when it was
-measured (pretest or posttest; before and after a deliberation exericise
+measured (pretest or posttest; before and after a deliberation exercise
 where participants discussed political topics), and the target of the
 attitude (Democrats or Republicans).</p>
 <p>Then, check out the “After” dataset below (named long_data). It has
@@ -464,22 +467,22 @@ scores only vary by time and not target).</p>
 ## $ polarization &lt;dbl&gt; 52.2777778, 52.2777778, 42.9351852, 42.9351852, 33.148148…</code></pre>
 <p>This is the strucutre and these the variables that I needed to make
 the graphs and the comparisons that I wanted to make with my data
-(including the graph from Project 1). I achieved this beautiful
-transformation in SPSS, but in this project I’m going to try to apply
-what I’ve learned so far and do it in R.</p>
+(including the graph from Project 1). I achieved this transformation in
+SPSS, but in this project I’m going to try to apply what I’ve learned so
+far and do it in R.</p>
 </div>
 <div
 id="combining-attitude-variables-into-one-bias-variable-while-retaining-information-about-time-and-target"
-class="section level3">
-<h3>Combining Attitude Variables into One Bias Variable while Retaining
-Information about Time and Target</h3>
+class="section level2">
+<h2>Combining Attitude Variables into One Bias Variable while Retaining
+Information about Time and Target</h2>
 <p>First, I’m going to use mutate( ) to create four bias variables (one
 for each time and target combination) by taking the mean of the
 appropriate attitude variables (e.g., prej_preD, discr_preD, and
 stereo_preD get averaged to create a bias_preD variable). This takes
-information from 12 variables and shoves it into only 4 variables. Then
-I’ll use select( ) to remove the variables that I no longer need or am
-uninterested in. See the results below.</p>
+information from 12 variables and compresses it into only 4 variables.
+Then I’ll use select( ) to remove the variables that I no longer need or
+am uninterested in. See the results below.</p>
 <pre class="r"><code>wide_data &lt;- wide_data %&gt;%
   mutate(
     bias_preD = rowMeans(across(c(prej_preD, discr_preD, stereo_preD)), na.rm = TRUE),
@@ -518,10 +521,10 @@ bias_postD, bias_preR, and bias_postR) to become scores on one variable
 (bias) and to be indexed (I don’t know if ‘indexed’ is the appropriate
 terminology for what I’m referring to, but hopefuly it captures my
 meaning) by scores on additional variables, time and target. Information
-about time and target is contained within the current variables names. I
-have to figure out how to get that information out of the variable names
-and into scores on two new variables while getting all the bias scores
-into one bias column.</p>
+about time and target is contained within the current variables names
+(e.g., _preR, _postD). I have to figure out how to get that information
+out of the variable names and into scores on two new variables while
+getting all the bias scores into one bias column.</p>
 <p>After some trial and error, I’ve discovered that the following method
 seems to work (though there may be more efficient ways). Below I use a
 combination of the pivot_longer( ) function and the separate( ) function
@@ -553,10 +556,10 @@ long_data</code></pre>
 ## # ℹ 390 more rows</code></pre>
 <pre class="r"><code>### Thanks to posit&#39;s &quot;data tidying with tidyr cheatsheet&quot; for help with the pivot_longer( ) and separate( ) functions.</code></pre>
 <p>Now we’ve got target, time, and bias variables—but not yet the one
-variable I really care about.</p>
+variable I really care about, polarization.</p>
 </div>
-<div id="creating-polarization-variable" class="section level3">
-<h3>Creating Polarization Variable</h3>
+<div id="creating-polarization-variable" class="section level2">
+<h2>Creating Polarization Variable</h2>
 <p>Now I want to create the polarization variable, and I want it to
 represent the distance between participants’ in-group and out-group
 attitudes. I can do this by taking the absolute values of the difference
@@ -628,19 +631,18 @@ long_data</code></pre>
 ## 10           3 1 [deliberation] 1 [Democrats] 1          2  48.5         7.67
 ## # ℹ 390 more rows</code></pre>
 <pre class="r"><code>### Thanks Claude.ai for helping me figure out to recode the target variables.</code></pre>
-<p>Viola! There you have it: The beautifully simple dataset that should
-allow me to make all the graphs my heart desires, all the graphs I can
-imagine to milk this data of all its insight.</p>
+<p>Now we have successfully recreated the dataset that I showed at the
+top. This dataset should allow me to create the graphs I need to create
+to summarize the findings of the study.</p>
 </div>
-<div id="testing-the-results" class="section level3">
-<h3>Testing the Results</h3>
+<div id="testing-the-results" class="section level2">
+<h2>Testing the Results</h2>
 <p>To make sure it’s the same as the “After” dataset that we glimpsed at
 the beginning of this project, I’ll now use the same code I used to make
 the graph up top. The code acts on the long_data dataset (using it to
 create a pretest_pol_summary dataset), which, after my first
 pivot_longer( ) function above, ceased to be the original long_data and
 became the new done-completely-with-R long_data).</p>
-<p>Without further adieu:</p>
 <pre class="r"><code>pretest_pol_summary &lt;- long_data %&gt;%
   filter(time == 1) %&gt;%
   group_by(delib, partyid) %&gt;% 
@@ -663,11 +665,11 @@ became the new done-completely-with-R long_data).</p>
   theme_minimal()</code></pre>
 <p><img src="p02_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
-<div id="success" class="section level3">
-<h3>SUCCESS!!</h3>
-<p>This one graph is only the tip of the iceberg (a small iceberg) of
-what I can explore with this dataset structured in this way. More graphs
-are to come in the next project!</p>
+<div id="success" class="section level2">
+<h2>Success</h2>
+<p>This one graph is only one example of what I can explore with this
+dataset structured in this way. More graphs are to come in the next
+project!</p>
 </div>
 
 

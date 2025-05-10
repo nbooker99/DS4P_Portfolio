@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio Project 1 - Graphing the Effect of Intergroup Contact on Political Polarization</title>
+<title>Graphing the Effect of Intergroup Contact on Political Polarization</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,32 +378,38 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Portfolio Project 1 - Graphing the Effect
-of Intergroup Contact on Political Polarization</h1>
+<h1 class="title toc-ignore">Graphing the Effect of Intergroup Contact
+on Political Polarization</h1>
 
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
-<p>My goal is to use my First Year Project data to make a bar graph
-(similar to one I made using SPSS for my FYP poster) to show the mean
-pre-test polarization scores of participants grouped by condition
-(control and deliberation) and party affiliation (Democrat or
+<p>My goal is to use my First Year Project data to make a bar graph to
+show the mean pre-test polarization scores of participants grouped by
+condition (control and deliberation) and party affiliation (Democrat or
 Republican). Once I make the graph, I will interpret it.</p>
 </blockquote>
+</div>
+<div id="importing-and-examining-data" class="section level2">
+<h2>Importing and Examining Data</h2>
 <p>Quite a bit of work in SPSS went into getting the data formatted the
 way I needed it to make a graph in R. After getting the data how I
 needed it within SPSS, I used the haven package to get the dataset into
-R. I use the str() function to show the structure of my data (see
+R.</p>
+<p>I use the str() function to show the structure of my data (see
 below). It may not look pretty, but it shows that I have a tibble with
 400 rows a 7 columns. It shows the 7 variables in my data set and shows
-the value labels for the variables that have them. Note: Because I’ll be
-making a graph with polarization as the DV, bias and target are
-irrelevant variables. This is because polarization scores were computed
-by taking the absolute value of the difference in attitudes (bias)
-towards Democrats and Republicans. So, a larger distance in attitudes
-(e.g., extremely postive towards one part and extremely negative towards
-the other party) produces a larger polarization score.</p>
+the value labels for the variables that have them.</p>
+<p>Note: Because I’ll be making a graph with polarization as the DV,
+bias and target are irrelevant variables. This is because polarization
+scores were computed by taking the absolute value of the difference in
+attitudes (bias) towards Democrats and Republicans (targets). So, a
+larger distance in attitudes (e.g., extremely postive towards one part
+and extremely negative towards the other party) produces a larger
+polarization score.</p>
 <pre class="r"><code>library(tidyverse) 
 library(tidyr)
 library(haven)
@@ -437,20 +443,28 @@ str(partisan_bias)</code></pre>
 ##  $ polarization: num [1:400] 52.3 42.9 52.3 42.9 33.1 ...
 ##   ..- attr(*, &quot;format.spss&quot;)= chr &quot;F8.2&quot;
 ##   ..- attr(*, &quot;display_width&quot;)= int 14</code></pre>
+</div>
+<div id="creating-a-dataframe-with-summary-statistics-for-the-graph"
+class="section level2">
+<h2>Creating a Dataframe with Summary Statistics for the Graph</h2>
 <p>Because I know what I want my graph to look like, I know that the
 variables polarization, delib, partyid, and time will be important for
-making the graph. However, I also know that: (1) I only want pre-test
-scores; (2) that the graph won’t contain individual polarization scores,
-but will instead display mean polarization scores for four different
-groups (delib x partyid); and (3) that I want my graph to have standard
-error bars to visualize whether differences between groups are
-meaningful. Therefore, below I create a new data frame
-(pretest_pol_summary) which uses the data from my original dataset,
-filters it to contain only cases where time = 1, and contains the mean
-polarization scores and standard errors for participants grouped by
-condition (delib), party identification, and time (pre-test, post-test).
-The output shows the values that I want in my table (disregarding the
-ns).</p>
+making the graph.</p>
+<p>However, I also know that:</p>
+<ol style="list-style-type: decimal">
+<li><p>I only want pre-test scores;</p></li>
+<li><p>the graph won’t contain individual polarization scores, but will
+instead display mean polarization scores for four different groups
+(delib x partyid); and</p></li>
+<li><p>I want my graph to have standard error bars to visualize whether
+differences between groups are meaningful.</p></li>
+</ol>
+<p>Therefore, below I create a new data frame (pretest_pol_summary)
+which uses the data from my original dataset, filters it to contain only
+cases where time = 1, and contains the mean polarization scores and
+standard errors for participants grouped by condition (delib), party
+identification, and time (pre-test, post-test). The output shows the
+values that I want in my table (disregarding the ns).</p>
 <pre class="r"><code>pretest_pol_summary &lt;- partisan_bias %&gt;%
   filter(time == 1) %&gt;%
   group_by(delib, partyid) %&gt;% 
@@ -469,6 +483,9 @@ pretest_pol_summary</code></pre>
 ## 2 0 [control]      2 [Republicans]     24.2   2.38    52
 ## 3 1 [deliberation] 1 [Democrats]       24.7   1.96    58
 ## 4 1 [deliberation] 2 [Republicans]     14.6   1.83    54</code></pre>
+</div>
+<div id="plotting-using-ggplot" class="section level2">
+<h2>Plotting using Ggplot</h2>
 <p>Finally, below I use ggplot to create a bar graph using the
 pretest_pol_summary data frame, with condition (delib) on the x axis,
 polarization on the y axis (mean_pol), with fill color according to
@@ -492,28 +509,34 @@ ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(p
   ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
   theme_minimal()</code></pre>
 <p><img src="p01_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+</div>
+<div id="intrepretation" class="section level2">
+<h2>Intrepretation</h2>
 <p>The bar graph above represents pre-test polarization scores of
-Democrats and Republicans in a control group and deliberation group. At
-pre-test in the deliberation condition, participants were seated at a
-table with equal numbers of Democrats and Republicans but had not yet
-done the deliberation exercise (a structured, goal-oriented conversation
-on political topics). At pre-test in the control condition, participants
-were alone. Therefore, the overall difference in pre-test polarization
-scores between control and deliberation participants represents the
-effect of minimal intergroup contact on affective politcal polarization
-(hence the graph title). We cannot say from this graph, however, whether
-there is an overall main effect of condition of pre-test polarization.
-We can see from the graph that, within condition, there is a main effect
-of party affiliation such that Democrats are polarized than Republicans
-in both the control and deliberation conditions. We can also see that,
-within each party, there is a main effect of condition such that control
-Democrats are more polarized than deliberation Democrats and control
-Republicans are more polarized than deliberation Republicans.</p>
+Democrats and Republicans in a control group and deliberation group.</p>
+<p>At pre-test in the deliberation condition, participants were seated
+at a table with equal numbers of Democrats and Republicans but had not
+yet done the deliberation exercise (a structured, goal-oriented
+conversation on political topics).</p>
+<p>At pre-test in the control condition, participants were alone.</p>
+<p>Therefore, the overall difference in pre-test polarization scores
+between control and deliberation participants represents the effect of
+minimal intergroup contact on affective politcal polarization.</p>
+<p>We can see from the graph that, within condition, there is a main
+effect of party affiliation such that Democrats are more polarized than
+Republicans in both the control and deliberation conditions.</p>
+<p>We can also see that, within each party, there is a main effect of
+condition such that control Democrats are more polarized than
+deliberation Democrats and control Republicans are more polarized than
+deliberation Republicans.</p>
+<p>We cannot say from this graph, however, whether there is an overall
+main effect of condition on pre-test polarization.</p>
 <p>Disclaimer: Claude and ChatGPT helped me with this assignment by
 providing options for code. When using code generated by Claude or
 ChatGPT, I also used Claude/Chat to help me understand what the code was
 doing. I believe I (mostly, hopefully) demonstrated adequate
 understanding of the code in my descriptions.</p>
+</div>
 
 
 

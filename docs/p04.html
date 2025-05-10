@@ -383,19 +383,25 @@ div.tocify {
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
 <p>The goal of this project is to clean a dataset for one of my thesis
 studies. The dataset comes directly as it was downloaded from Qualtrics.
 I will clean the dataset by removing cases according to the criteria
-that I preregistered. I’ll also combine item scores into variables and
-combine variables into a composite variable. The overall goal is to
-create a dataset that is ready for analyses.</p>
+from my preregisteration. I’ll also combine item scores into variables
+and combine certain well-being variables into a composite well-being
+variable. The overall goal is to create a dataset that is ready for
+analyses.</p>
 </blockquote>
+</div>
+<div id="importing-data" class="section level2">
+<h2>Importing Data</h2>
 <pre class="r"><code>library(tidyverse)</code></pre>
 <pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
 ## ✔ dplyr     1.1.4     ✔ readr     2.1.5
 ## ✔ forcats   1.0.0     ✔ stringr   1.5.1
-## ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+## ✔ ggplot2   3.5.2     ✔ tibble    3.2.1
 ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
 ## ✔ purrr     1.0.4     
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
@@ -408,6 +414,7 @@ qualtrics_data &lt;- read_sav(&quot;data/Data from Qualtrics - CSJA Study 2_Apri
 #n = 176
 #Expecting n = 150 valid cases because 150 credits were granted in SONA to respondents
 #who proceeded to the end of the survey.</code></pre>
+</div>
 <div id="removing-error-cases" class="section level2">
 <h2>Removing error cases</h2>
 <pre class="r"><code>#Per preregistration, using only cases in which participants proceeded to the end of the survey.
@@ -418,8 +425,9 @@ qualtrics_data &lt;- qualtrics_data %&gt;%
 qualtrics_data &lt;- qualtrics_data %&gt;% 
   filter(id != &quot;9244&quot;)
 #n = 157</code></pre>
-<div id="removing-duplicates" class="section level3">
-<h3>Removing duplicates</h3>
+</div>
+<div id="removing-duplicates" class="section level2">
+<h2>Removing duplicates</h2>
 <pre class="r"><code>#A technical issue in which the SONA study was not automatically granting participants credit 
 #when they completed the Qualtrics survey caused some participants to take the survey more 
 #than once. I&#39;ll now screen out duplicate survey responses based on the id variable.
@@ -484,7 +492,6 @@ qualtrics_data &lt;- qualtrics_data %&gt;%
 <pre class="r"><code>#Some items were mistakenly named as reversed items. Fixing the names.
 qualtrics_data &lt;- qualtrics_data %&gt;%
   rename(NFM8 = NFM8r, CSJAS22 = CSJAS22r)</code></pre>
-</div>
 </div>
 <div id="screening-out-cases-based-on-preregistration-criteria"
 class="section level2">
@@ -937,24 +944,20 @@ qualtrics_data &lt;- qualtrics_data %&gt;%
 <pre class="r"><code>#DEVIATING FROM PREREGISTRATION
 # Create z-score version of WellBeing
 WB_outlier &lt;- qualtrics_data %&gt;%
-  mutate(WellBeing_z = abs(scale(WellBeing)[,1])) %&gt;% 
+  mutate(WellBeing_z = round(abs(scale(WellBeing)[,1]), 2)) %&gt;% 
   dplyr::select(WellBeing_z, id) %&gt;% 
   arrange(desc(WellBeing_z))
-WB_outlier</code></pre>
-<pre><code>## # A tibble: 149 × 2
-##    WellBeing_z id   
-##          &lt;dbl&gt; &lt;chr&gt;
-##  1        4.99 26256
-##  2        2.35 25923
-##  3        2.16 25696
-##  4        2.13 25794
-##  5        2.03 25770
-##  6        1.91 25704
-##  7        1.80 25698
-##  8        1.79 26128
-##  9        1.75 25757
-## 10        1.64 25706
-## # ℹ 139 more rows</code></pre>
+WB_outlier %&gt;% 
+  head()</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   WellBeing_z id   
+##         &lt;dbl&gt; &lt;chr&gt;
+## 1        4.99 26256
+## 2        2.35 25923
+## 3        2.16 25696
+## 4        2.13 25794
+## 5        2.03 25770
+## 6        1.91 25704</code></pre>
 <pre class="r"><code>#During analyses, I discovered that this participant was dramatically skewing results.
 #Excluding this case.
 qualtrics_data &lt;- qualtrics_data %&gt;%

@@ -81,5 +81,209 @@ interviewee_demographics <- tribble(
 ```{r}
 library(readxl)
 interviewee_demographics <- read_excel("data/interviewee_demographics.xlsx")
+interviewee_demographics
+```
+
+## Adjusting Variables
+
+Changing gender and race variables to factor 
+
+```{r}
+interviewee_demographics <- interviewee_demographics %>% 
+  mutate(
+    gender = factor(gender,
+                    levels = c(1, 2),
+                    labels = c("male", "female")),
+    race = factor(race,
+                  levels = c(1:8),
+                  labels = c("American Indian or Alaskan Native",
+                            "Asian",
+                            "Black or African American",
+                            "Hispanic or Latino",
+                            "Native Hawaiian or Other Pacific Islander",
+                            "White",
+                            "Prefer not to say",
+                            "Other"))
+  )
+```
+
+## Tables and Visualizations
+
+### Visualizing Birth Countries
+The most interesting visualization will probably be to depict where in the world the interviewees were born. I found and copied and pasted the code below from a Stack Overflow forum post titled "How to plot a world map using R" (link: https://stackoverflow.com/questions/69625716/how-to-plot-a-world-map-using-r).
+
+```{r}
+library("ggplot2")
+theme_set(theme_bw())
+library("sf")
+library("rnaturalearth")
+library("rnaturalearthdata")
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+```
+
+```{r}
+ggplot(data = world) +
+    geom_sf()
+```
+
+```{r}
+ggplot(data = world) +
+    geom_sf() +
+    xlab("Longitude") + ylab("Latitude") +
+    ggtitle("World map", subtitle = paste0("(", length(unique(world$NAME)), " countries)"))
+```
+This demonstrates an example of how one might apply a fill based on one of the variables in the world dataset.
+```{r}
+ggplot(data = world) +
+    geom_sf(aes(fill = pop_est)) +
+    scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+```
+This demonstrates an example of how one might apply a fill based on criteria external to the world dataset.
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+my_countries <- c("Aruba","Afghanistan", "Morocco", "Canada")
+
+world_modified <- world %>% 
+  mutate(my_selection = ifelse(admin %in% my_countries,
+                               1, NA))
+
+
+ggplot(data = world_modified) +
+  geom_sf(aes(fill=my_selection)) +
+  theme_bw()
+```
+Claude helped me to adapt the code above for my goal of highlighting the countries contained in the birth countries of my dataset.
+```{r}
+birth_countries <- unique(interviewee_demographics$birth_country)
+
+world_modified <- world %>% 
+  mutate(highlight = ifelse(admin %in% birth_countries, 1, NA))
+
+ggplot(data = world_modified) +
+  geom_sf(aes(fill = highlight)) +
+  scale_fill_viridis_c(name = "Interviewees' Birth Countries", 
+                       na.value = "gray90") +
+  theme_bw() +
+  labs(title = "Birth Countries of Interviewees")
+
+```
+I prefer this option because it shows counts. Claude provided this option as well.
+```{r, fig.width=12, fig.height=8}
+# Count interviewees by country
+country_counts <- interviewee_demographics %>%
+  count(birth_country)
+
+# Join with world data
+world_with_counts <- world %>%
+  left_join(country_counts, by = c("admin" = "birth_country"))
+
+# Create map with count shading
+ggplot(data = world_with_counts) +
+  geom_sf(aes(fill = n)) +
+  scale_fill_viridis_c(name = "Number of Interviewees", 
+                       na.value = "gray90") +
+  theme_bw() +
+  labs(title = "Interviewees by Birth Country")
+```
+I asked Claude to do the fill a different way so that the legend was not a gradient and would correspond only to the actual count values in the dataset (1, 2, and 3). We achieved this by putting fill = factor(n) in the aesthetics for geom_sf.
+```{r, fig.width=12, fig.height=8}
+library(viridis)
+# Create map with manual discrete color scale
+ggplot(data = world_with_counts) +
+  geom_sf(aes(fill = factor(n))) +  # Convert to factor here
+  scale_fill_manual(name = "Number of Interviewees",
+                   values = viridis(3),  # Get 3 colors from viridis
+                   na.value = "gray90") +
+  theme_bw() +
+  labs(title = "Interviewees by Birth Country")
+```
+
+Comparing the plot above to the original data.
+```{r, rows.print=19}
+interviewee_demographics %>% 
+  count(birth_country) %>% 
+  arrange(desc(n))
+```
+Upon inspection, I notice that the country_counts dataframe (made from the interviewee_demographics data) was used to create the world_with_counts dataframe by matching the "admin" and "birth_country" columns. At least one of the names (England) doesn't appear in the admin column of the world dataset. Checking to see where else this may have happened.
+
+```{r, rows.print=19}
+checking <- world_with_counts %>% 
+  select(admin, n) %>% 
+  arrange(desc(n))
+
+print(checking, n = 19)
+```
+
+Comparing this output to the output above, I've confirmed that England is the only one missing. In the admin column of the world dataset, there is no England, only United Kingdom. So, I'll change this value of the interviewee_demographics dataset.
+
+```{r}
+interviewee_demographics <- interviewee_demographics %>% 
+  mutate(birth_country = if_else(birth_country == "England", 
+                                "United Kingdom", 
+                                birth_country))
+```
+
+Now, I'll recreate the country_counts dataframe, joi
+```{r, fig.width=12, fig.height=8}
+country_counts <- interviewee_demographics %>%
+  count(birth_country)
+
+world_with_counts <- world %>%
+  left_join(country_counts, by = c("admin" = "birth_country"))
+
+ggplot(data = world_with_counts) +
+  geom_sf(aes(fill = factor(n))) +  # Convert to factor here
+  scale_fill_manual(name = "Number of Interviewees",
+                   values = viridis(3),  # Get 3 colors from viridis
+                   na.value = "gray90") +
+  theme_bw() +
+  labs(title = "Interviewees by Birth Country")
+```
+
+### Age
+
+```{r}
+interviewee_demographics %>% 
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Ages of Interviewees") +
+  theme_minimal()
+
+interviewee_demographics %>% 
+  count(age)
+```
+
+I was instructed, "I would also like to see the ages broken down within a range. Whatever makes sense. Maybe 18-22, 22-26, 26-30, but then put the actual ages of the outliers (like the 88-year-old)."
+
+```{r}
+interviewee_demographics <- interviewee_demographics %>% 
+  mutate(age_range = case_when(
+    age %in% c(18:22) ~ "18-22",
+    age %in% c(23:26) ~ "23-26",
+    age %in% c(26:30) ~ "26-30",
+    age %in% c(30:40) ~ "30-40",
+    age %in% c(40:50) ~ "40-50",
+    age %in% c(50:60) ~ "50-60",
+    age %in% c(61:90) ~ "60+"
+  ))
+interviewee_demographics %>% 
+  count(age_range)
+```
+
+```{r}
+# Define the order of age ranges
+age_order <- c("18-22", "23-26", "26-30", "30-40", "40-50", "50-60", "60+")
+
+# Plot with ordered factors
+interviewee_demographics %>%
+  mutate(age_range = factor(age_range, levels = age_order)) %>%
+  ggplot(aes(x = age_range)) +
+  geom_bar() +
+  theme_minimal() +
+  labs(title = "Age Distribution of Interviewees",
+       x = "Age Range",
+       y = "Count")
 ```
 

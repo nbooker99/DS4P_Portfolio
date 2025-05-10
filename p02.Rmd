@@ -1,5 +1,5 @@
 ---
-title: "Project 2: A Somewhat Complicated Case of Wide-to-Long"
+title: "A Somewhat Complicated Case of Wide-to-Long"
 output: 
   html_document:
     theme: cosmo
@@ -7,8 +7,9 @@ output:
     toc_float: true
     code_folding: show
 ---
+## Goal
 
-> My goal in this project is to use R to take the dataset you see below (with 17 variables, none of them called polarization) and transform it into a dataset that I can use to make the graph you see (further) below, of which polarization is the dependent variable. That's my graph from Portfolio Project 1, and I did all the necessary data restructuring stuff in SPSS in order to make it. The goal of this project is to challenge myself to learn how to do it in R.
+> My goal in this project is to use R to take the dataset you see below (with 17 variables, none of them called polarization) and transform it into a dataset that I can use to make the graph you see further below, of which polarization is the dependent variable. That's my graph from Portfolio Project 1. I did all the necessary data restructuring in SPSS in order to make it. The goal of this project is to challenge myself to learn how to do it in R.
 
 ```{r laod packages and import data, message=FALSE}
 library(tidyverse)
@@ -32,8 +33,8 @@ ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(p
   
 ```
 
-### "Before and After" Datasets: A Glimpse of the Goal
-First, check out the "Before" dataset again above (named wide_data). It has 100 observations (each representing a participant) with scores on 17 variables. The names of many of those variables (e.g., prej_preD, discr_postR, and stereo_postD) denote the kind of attitude that was measured (prejudicial, discriminatory, or stereotype), when it was measured (pretest or posttest; before and after a deliberation exericise where participants discussed political topics), and the target of the attitude (Democrats or Republicans).
+## "Before and After" Datasets: A Glimpse of the Goal
+First, check out the "Before" dataset again above (named wide_data). It has 100 observations (each representing a participant) with scores on 17 variables. The names of many of those variables (e.g., prej_preD, discr_postR, and stereo_postD) denote the kind of attitude that was measured (prejudicial, discriminatory, or stereotype), when it was measured (pretest or posttest; before and after a deliberation exercise where participants discussed political topics), and the target of the attitude (Democrats or Republicans).
 
 
 Then, check out the "After" dataset below (named long_data). It has 400 observations (4 observations per 100 participants) of only 7 variables. It combines the different attitude variables into one variable called bias and indexes bias according to scores on time and target variables. It also includes the variable I most care about, polarization, which is essentially the distance between participants' attitudes towards their own party and their attitudes towards the other party (which is why, as you might notice by the repeating polarization values displayed in the glimpse below, within participants, polarization scores only vary by time and not target).
@@ -42,10 +43,10 @@ Then, check out the "After" dataset below (named long_data). It has 400 observat
 glimpse(long_data)
 ```
 
-This is the strucutre and these the variables that I needed to make the graphs and the comparisons that I wanted to make with my data (including the graph from Project 1). I achieved this beautiful transformation in SPSS, but in this project I'm going to try to apply what I've learned so far and do it in R.
+This is the strucutre and these the variables that I needed to make the graphs and the comparisons that I wanted to make with my data (including the graph from Project 1). I achieved this transformation in SPSS, but in this project I'm going to try to apply what I've learned so far and do it in R.
 
-### Combining Attitude Variables into One Bias Variable while Retaining Information about Time and Target
-First, I'm going to use mutate( ) to create four bias variables (one for each time and target combination) by taking the mean of the appropriate attitude variables (e.g., prej_preD, discr_preD, and stereo_preD get averaged to create a bias_preD variable). This takes information from 12 variables and shoves it into only 4 variables. Then I'll use select( ) to remove the variables that I no longer need or am uninterested in. See the results below.
+## Combining Attitude Variables into One Bias Variable while Retaining Information about Time and Target
+First, I'm going to use mutate( ) to create four bias variables (one for each time and target combination) by taking the mean of the appropriate attitude variables (e.g., prej_preD, discr_preD, and stereo_preD get averaged to create a bias_preD variable). This takes information from 12 variables and compresses it into only 4 variables. Then I'll use select( ) to remove the variables that I no longer need or am uninterested in. See the results below.
 ```{r creating_bias}
 wide_data <- wide_data %>%
   mutate(
@@ -65,7 +66,7 @@ Note on interpreting bias scores: A scores of 0 represents a maximally positive 
 
 Now I have a pretty tidy dataset with 100 observations of only 7 variables. 
 
-However, we really want scores on four of those variables (bias_preD, bias_postD, bias_preR, and bias_postR) to become scores on one variable (bias) and to be indexed (I don't know if 'indexed' is the appropriate terminology for what I'm referring to, but hopefuly it captures my meaning) by scores on additional variables, time and target. Information about time and target is contained within the current variables names. I have to figure out how to get that information out of the variable names and into scores on two new variables while getting all the bias scores into one bias column.
+However, we really want scores on four of those variables (bias_preD, bias_postD, bias_preR, and bias_postR) to become scores on one variable (bias) and to be indexed (I don't know if 'indexed' is the appropriate terminology for what I'm referring to, but hopefuly it captures my meaning) by scores on additional variables, time and target. Information about time and target is contained within the current variables names (e.g., _preR, _postD). I have to figure out how to get that information out of the variable names and into scores on two new variables while getting all the bias scores into one bias column.
 
 After some trial and error, I've discovered that the following method seems to work (though there may be more efficient ways). Below I use a combination of the pivot_longer( ) function and the separate( ) function to transform the dataset you see above into the one you see below.
 
@@ -84,9 +85,9 @@ long_data
 ### Thanks to posit's "data tidying with tidyr cheatsheet" for help with the pivot_longer( ) and separate( ) functions.
 ```
 
-Now we've got target, time, and bias variables---but not yet the one variable I really care about. 
+Now we've got target, time, and bias variables---but not yet the one variable I really care about, polarization. 
 
-### Creating Polarization Variable
+## Creating Polarization Variable
 
 Now I want to create the polarization variable, and I want it to represent the distance between participants' in-group and out-group attitudes. I can do this by taking the absolute values of the difference of bias scores according to target. But first, I have to restructure the data from long to wide again using the pivot_wider( ) function to get bias scores towards different targets into two separate columns.
 
@@ -117,12 +118,12 @@ long_data
 ### Thanks Claude.ai for helping me figure out to recode the target variables.
 ```
 
-Viola! There you have it: The beautifully simple dataset that should allow me to make all the graphs my heart desires, all the graphs I can imagine to milk this data of all its insight.
 
-### Testing the Results
+Now we have successfully recreated the dataset that I showed at the top. This dataset should allow me to create the graphs I need to create to summarize the findings of the study.
+
+## Testing the Results
 To make sure it's the same as the "After" dataset that we glimpsed at the beginning of this project, I'll now use the same code I used to make the graph up top. The code acts on the long_data dataset (using it to create a pretest_pol_summary dataset), which, after my first pivot_longer( ) function above, ceased to be the original long_data and became the new done-completely-with-R long_data). 
 
-Without further adieu:
 ```{r}
 pretest_pol_summary <- long_data %>%
   filter(time == 1) %>%
@@ -144,5 +145,6 @@ ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(p
   theme_minimal()
 ```
 
-### SUCCESS!!
-This one graph is only the tip of the iceberg (a small iceberg) of what I can explore with this dataset structured in this way. More graphs are to come in the next project!
+## Success
+
+This one graph is only one example of what I can explore with this dataset structured in this way. More graphs are to come in the next project!

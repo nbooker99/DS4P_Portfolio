@@ -384,8 +384,133 @@ still think Excel is easier.</p>
 <div id="approach-4." class="section level3">
 <h3>Approach 4.</h3>
 <pre class="r"><code>library(readxl)
-interviewee_demographics &lt;- read_excel(&quot;data/interviewee_demographics.xlsx&quot;)</code></pre>
+interviewee_demographics &lt;- read_excel(&quot;data/interviewee_demographics.xlsx&quot;)
+interviewee_demographics</code></pre>
+<pre><code>## # A tibble: 27 × 9
+##      age gender  race race2 major      occupation birth_country length_res_years
+##    &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;      &lt;chr&gt;                    &lt;dbl&gt;
+##  1    33      2     3 &lt;NA&gt;  &lt;NA&gt;       professor  Guyana                    2   
+##  2    31      2     8 mixed &lt;NA&gt;       professor  South Africa              1.67
+##  3    89      2     6 &lt;NA&gt;  &lt;NA&gt;       &lt;NA&gt;       Italy                    NA   
+##  4    25      1     4 6     &lt;NA&gt;       HES resea… Brazil                    5   
+##  5    20      2     6 &lt;NA&gt;  &lt;NA&gt;       student    Netherlands               2   
+##  6    28      2     3 &lt;NA&gt;  communica… student    Nigeria                   1   
+##  7    57      1     6 &lt;NA&gt;  &lt;NA&gt;       retired -… England                  28   
+##  8    51     NA     4 &lt;NA&gt;  economics  banking    Colombia                 27   
+##  9    22      2     4 6     economics  student    Brazil                    4   
+## 10    20      2     6 &lt;NA&gt;  engineeri… student    South Africa              5   
+## # ℹ 17 more rows
+## # ℹ 1 more variable: year_moved &lt;dbl&gt;</code></pre>
 </div>
+</div>
+<div id="adjusting-variables" class="section level2">
+<h2>Adjusting Variables</h2>
+<p>Changing gender and race variables to factor</p>
+<pre class="r"><code>interviewee_demographics &lt;- interviewee_demographics %&gt;% 
+  mutate(
+    gender = factor(gender,
+                    levels = c(1, 2),
+                    labels = c(&quot;male&quot;, &quot;female&quot;)),
+    race = factor(race,
+                  levels = c(1:8),
+                  labels = c(&quot;American Indian or Alaskan Native&quot;,
+                            &quot;Asian&quot;,
+                            &quot;Black or African American&quot;,
+                            &quot;Hispanic or Latino&quot;,
+                            &quot;Native Hawaiian or Other Pacific Islander&quot;,
+                            &quot;White&quot;,
+                            &quot;Prefer not to say&quot;,
+                            &quot;Other&quot;))
+  )</code></pre>
+<pre class="r"><code>library(&quot;ggplot2&quot;)
+theme_set(theme_bw())
+library(&quot;sf&quot;)</code></pre>
+<pre><code>## Linking to GEOS 3.13.0, GDAL 3.8.5, PROJ 9.5.1; sf_use_s2() is TRUE</code></pre>
+<pre class="r"><code>library(&quot;rnaturalearth&quot;)
+library(&quot;rnaturalearthdata&quot;)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;rnaturalearthdata&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:rnaturalearth&#39;:
+## 
+##     countries110</code></pre>
+<pre class="r"><code>world &lt;- ne_countries(scale = &quot;medium&quot;, returnclass = &quot;sf&quot;)</code></pre>
+<pre class="r"><code>ggplot(data = world) +
+    geom_sf()</code></pre>
+<p><img src="p10_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data = world) +
+    geom_sf() +
+    xlab(&quot;Longitude&quot;) + ylab(&quot;Latitude&quot;) +
+    ggtitle(&quot;World map&quot;, subtitle = paste0(&quot;(&quot;, length(unique(world$NAME)), &quot; countries)&quot;))</code></pre>
+<p><img src="p10_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data = world) +
+    geom_sf(aes(fill = pop_est)) +
+    scale_fill_viridis_c(option = &quot;plasma&quot;, trans = &quot;sqrt&quot;)</code></pre>
+<p><img src="p10_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>world &lt;- ne_countries(scale = &quot;medium&quot;, returnclass = &quot;sf&quot;)
+
+my_countries &lt;- c(&quot;Aruba&quot;,&quot;Afghanistan&quot;, &quot;Morocco&quot;, &quot;Canada&quot;)
+
+world_modified &lt;- world %&gt;% 
+  mutate(my_selection = ifelse(admin %in% my_countries,
+                               1, NA))
+
+
+ggplot(data = world_modified) +
+  geom_sf(aes(fill=my_selection)) +
+  theme_bw()</code></pre>
+<p><img src="p10_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>birth_countries &lt;- unique(interviewee_demographics$birth_country)
+
+world_modified &lt;- world %&gt;% 
+  mutate(highlight = ifelse(admin %in% birth_countries, 1, NA))
+
+ggplot(data = world_modified) +
+  geom_sf(aes(fill = highlight)) +
+  scale_fill_viridis_c(name = &quot;Interviewees&#39; Birth Countries&quot;, 
+                       na.value = &quot;gray90&quot;) +
+  theme_bw() +
+  labs(title = &quot;Birth Countries of Interviewees&quot;)</code></pre>
+<p><img src="p10_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre class="r"><code># Count interviewees by country
+country_counts &lt;- interviewee_demographics %&gt;%
+  count(birth_country)
+
+# Join with world data
+world_with_counts &lt;- world %&gt;%
+  left_join(country_counts, by = c(&quot;admin&quot; = &quot;birth_country&quot;))
+
+# Create map with count shading
+ggplot(data = world_with_counts) +
+  geom_sf(aes(fill = n)) +
+  scale_fill_viridis_c(name = &quot;Number of Interviewees&quot;, 
+                       na.value = &quot;gray90&quot;) +
+  theme_bw() +
+  labs(title = &quot;Interviewees by Birth Country&quot;)</code></pre>
+<p><img src="p10_files/figure-html/unnamed-chunk-15-1.png" width="1152" /></p>
+<pre class="r"><code>interviewee_demographics %&gt;% 
+  count(birth_country)</code></pre>
+<pre><code>## # A tibble: 19 × 2
+##    birth_country     n
+##    &lt;chr&gt;         &lt;int&gt;
+##  1 Brazil            3
+##  2 Colombia          3
+##  3 Egypt             1
+##  4 England           1
+##  5 Eritrea           1
+##  6 Germany           1
+##  7 Greece            1
+##  8 Guyana            1
+##  9 Honduras          1
+## 10 Iceland           1
+## 11 India             1
+## 12 Italy             2
+## 13 Japan             2
+## 14 Mexico            2
+## 15 Netherlands       1
+## 16 Nigeria           1
+## 17 Peru              1
+## 18 South Africa      2
+## 19 Turkey            1</code></pre>
 </div>
 
 

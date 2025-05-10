@@ -157,3 +157,148 @@ for(i in 1:length(Relig_vars)) {
 # View the results table
 all_results
 ```
+
+
+
+## 4. Working Version
+
+There were steps in between the version above and the version below which I failed to document, but below is the code for the function that I ended up using for my analyses.
+
+The compile_regression function...
+
+• creates tibble called results,
+
+• runs a regression analysis on the variables plugged into the function and assigns the results to an object called regr_summary1,
+
+• extracts the pieces of the results that I'm interested in and adds them to the results tibble,
+
+• runs a second regression analysis which adds all the control variables to the model and assigns the results to an object called regr_summary2, and
+
+• extracts the pieces of the results that I'm interested them and adds them as another row in the results tibble.
+
+The loop_function...
+
+• runs the compile_regressions function for each combination of outcome variable and explanatory variable that I give it, and
+
+• adds new rows to the results table for each iteration.
+
+```{r}
+# Function to run regressions and return formatted results
+compile_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Results for both models
+  results <- tibble()
+  
+  # Model 1: No controls
+  regr_summary1 <- summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
+                                   explanatory_var)), data = dataset)))
+  
+  # Create first row
+  results <- tibble(
+    model = "no controls",
+    outcome = outcome_var,
+    predictor = explanatory_var,
+    b = sprintf("%.2f", regr_summary1$coefficients[2, 1]),
+    B = sprintf("%.2f", regr_summary1$coefficients[2, 2]),
+    SE = sprintf("%.2f", regr_summary1$coefficients[2, 3]),
+    t = sprintf("%.2f", regr_summary1$coefficients[2, 4]),
+    t_p = sprintf("%.3f", regr_summary1$coefficients[2, 5]),
+    R = sprintf("%.2f", regr_summary1$r.squared),
+    adjR = sprintf("%.2f", regr_summary1$adj.r.squared),
+    F_ = round(regr_summary1$fstatistic[1], 2),
+    df = paste0("(", regr_summary1$fstatistic[2], ", ", regr_summary1$fstatistic[3], ")"),
+    F_p = sprintf("%.3f", pf(regr_summary1$fstatistic[1], regr_summary1$fstatistic[2], 
+                           regr_summary1$fstatistic[3], lower.tail = FALSE))
+  )
+  
+  # Model 2: With controls
+  regr_summary2 <- summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
+                                   explanatory_var, 
+                                   "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+                                   Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+                                   STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+                              data = dataset)))
+  
+  # Add second row
+  results <- bind_rows(results, tibble(
+    model = "w/ controls",
+    outcome = outcome_var,
+    predictor = explanatory_var,
+    b = sprintf("%.2f", regr_summary2$coefficients[2, 1]),
+    B = sprintf("%.2f", regr_summary2$coefficients[2, 2]),
+    SE = sprintf("%.2f", regr_summary2$coefficients[2, 3]),
+    t = sprintf("%.2f", regr_summary2$coefficients[2, 4]),
+    t_p = sprintf("%.3f", regr_summary2$coefficients[2, 5]),
+    R = sprintf("%.2f", regr_summary2$r.squared),
+    adjR = sprintf("%.2f", regr_summary2$adj.r.squared),
+    F_ = round(regr_summary2$fstatistic[1], 2),
+    df = paste0("(", regr_summary2$fstatistic[2], ", ", regr_summary1$fstatistic[3], ")"),
+    F_p = sprintf("%.3f", pf(regr_summary2$fstatistic[1], regr_summary2$fstatistic[2], 
+                           regr_summary2$fstatistic[3], lower.tail = FALSE))
+  ))
+  
+  return(results)
+}
+
+#Function to loop the compile_regression function for combinations of variables.
+loop_regressions <- function(outcome_var, explanatory_var, dataset) {
+  results <- tibble()
+  for(i in 1:length(outcome_vars)) {
+    for(j in 1:length(expl_vars)) {
+      results <- bind_rows(results, 
+                               compile_regressions(outcome_var[i], explanatory_var[j], dataset))
+      }
+  }
+    return(results)
+}
+```
+
+
+
+## Example
+
+Here is the example that most effectively demonstrates the reason why creating such a function was useful.
+
+One of the hypotheses being tested in my study was that religiosity would postively predict well-being.
+
+However, the religiosity scale being used has two subscales, and the well-being variable in the study is actually a composite variable of five different well-being variables.
+
+The preregistration for the study states that separate analyses will be run for each religiosity subscale, and for each constituent well-being variable, and separate analyses which include demographic variables as controls.
+
+It wasn't until I began to test run the analyses that I realized that to test this single hypothesis, I was obligated by my preregistration to run 6 (well-being + 5 constituent well-being variables) x 3 (religiosity and 2 subscales) x 2 (single-predictor model and model with control variables) = 36 different regression analyses.
+
+To interpret the results of the full output of 36 separate regression analyses from SPSS was untenable.
+
+Given that the main thing I'm interested in is the regression coefficient (and related statistics) of the predictor variable, it made sense to try to use R code that could run regressions for all combinations of predictors and outcome variables and organize the relevant output into a table. See below for the results.
+
+```{r}
+outcome_vars <- c("WellBeing", "Anxiety_POMP", "Depression_POMP", "LifeSatisf_POMP", 
+                 "PosAffect_POMP", "NegAffect_POMP")
+expl_vars <- c("Relig", "Relig_inter", "Relig_intra")
+
+results6 <- loop_regressions(outcome_vars, expl_vars, data_for_analysis)
+
+options(width = 2000)           # Increase console width
+options(tibble.width = Inf)     # Show all columns
+options(pillar.min_chars = Inf) # Don't truncate character columns
+
+results6
+```
+
+## Interpretation
+
+Below I will arrange the rows of the table by p-value (t_p is the p-value for the t statistic for the predictor's regression coefficent) to search for models in which religiosity (or one of the subscales) significantly predicted well-being (or one of the constituent well-being variables).
+
+```{r}
+results6 %>% 
+  arrange(t_p)
+```
+
+Now we can see that the smallest p-value is .301. So, neither religiosity nor either of its subscale significantly predicted any well-being variables either in models with or without demographic control variables.
+
+There were many other hypotheses of the study that were tested using regression analyses for which this function was useful.
+
+I also created a moderated regression version of the function.
+
+There are parts of the function (e.g., the part where it pulls the relevant statistics from the regression output to add to the table, or the part where it pastes the names of the demographic control variables) that are highly specific to this data and would have to be modified for other uses (as I did for the moderated regression version).
+
+I could, in the future, try to make this funciton more generalizable. 
