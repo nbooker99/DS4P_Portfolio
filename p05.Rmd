@@ -188,7 +188,7 @@ I re-added dataset as an argument to the function to make it more adaptable.
 
 I also added code (cat("\n-------------------\n\n")) which adds a line to separate the output of each iterartion to make the output easier to read.
 
-```{r echo = FALSE}
+```{r}
 
 # Function to run regressions using formulas created from strings
 run_regressions <- function(outcome_var, explanatory_var, dataset) {

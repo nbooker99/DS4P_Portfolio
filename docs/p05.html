@@ -600,6 +600,24 @@ another model which added all demographic control variables at once.</p>
 adaptable.</p>
 <p>I also added code (cat(“——————-”)) which adds a line to separate the
 output of each iterartion to make the output easier to read.</p>
+<pre class="r"><code># Function to run regressions using formulas created from strings
+run_regressions &lt;- function(outcome_var, explanatory_var, dataset) {
+  # Model 1: Just the explanatory variable
+  print(paste(&quot;Model 1:&quot;, outcome_var, &quot;~&quot;, explanatory_var))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, &quot;~&quot;,
+                                    explanatory_var)), data = 
+                     dataset))))
+  
+  # Model 2: Add all controls
+  print(paste(&quot;Model 2:&quot;, outcome_var, &quot;~&quot;, explanatory_var, &quot;+ all controls&quot;))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, &quot;~&quot;, 
+                                    explanatory_var, 
+    &quot;+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy&quot;)), 
+    data = dataset))))
+  cat(&quot;\n----------------------------------------------------\n\n&quot;)
+}</code></pre>
 </div>
 <div id="example" class="section level2">
 <h2>Example</h2>
