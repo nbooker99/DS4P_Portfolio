@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio 8 - Main Analyses - Study 2</title>
+<title>Portfolio 8 - Study 2 Results</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,7 +378,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Portfolio 8 - Main Analyses - Study 2</h1>
+<h1 class="title toc-ignore">Portfolio 8 - Study 2 Results</h1>
 
 </div>
 
@@ -386,21 +386,46 @@ div.tocify {
 <div id="goal" class="section level2">
 <h2>Goal</h2>
 <blockquote>
-<p>The goal of this project is to demonstrate how the products projects
-5 and 6 The projects should be numbered consecutively (i.e., in the
-order in which you began them), and should include for each project a
-description of the goal, the product (computer program, hand graph,
-computer graph, etc.), the data, and some interpretation. Reports must
-be reproducible and of high quality in terms of writing, grammar,
-presentation, etc.</p>
+<p>The goal of this project is to demonstrate the usefullness of R in
+conducting and displaying the results of data analysis. The products of
+portfolio projects 5 and 6 contributed to this project.</p>
+</blockquote>
+<blockquote>
+<p>In this case, the entire document is the product. It shows the
+results of the main analyses for all preregistered hypotheses for Study
+2 of my thesis. The study tests hypothesis regrading the relationship
+between a need for meaning, religiosity, critical social justice
+attitudes, and well-being. Notably, the Table of Contents functionality
+makes the document very useful.</p>
+</blockquote>
+<blockquote>
+<p>Part I of the document shows the first and simplest analysis which
+was conducted to test each hypothesis. The output in most cases is a
+regression output.</p>
+</blockquote>
+<blockquote>
+<p>Part II of the document uses the function demonstrated in portoflio
+project 6 to display tables with the concentrated results of the
+expanded analyses for each hypothesis (because the study preregistration
+indicated that separate analyses would be run for different versions of
+well-being variables, different religiosity subscales, and with
+demographic control variables).</p>
+</blockquote>
+<blockquote>
+<p>Part III of the document uses the function demonstrated in portfolio
+project 5 to display the full output of all analyses in case any
+particular results warrant a closer look at the full regression models
+(e.g., to examine why a key predictor became nonsignificant when
+demographic controls were added to the model——which demographic control
+were signficant?).</p>
 </blockquote>
 <pre class="r"><code>library(tidyverse)
 library(lm.beta)
 library(haven)
 data_for_analysis &lt;- read_sav(&quot;data/data_for_analysis.sav&quot;)</code></pre>
 </div>
-<div id="simplest-version-of-main-analyses" class="section level1">
-<h1>Simplest Version of Main Analyses</h1>
+<div id="i.-simplest-version-of-main-analyses" class="section level1">
+<h1>I. Simplest Version of Main Analyses</h1>
 <div id="hypothesis-nfm-will-be-positively-associated-with-csjas."
 class="section level3">
 <h3>1. Hypothesis: NFM will be positively associated with CSJAS.</h3>
@@ -596,9 +621,9 @@ Well-Being.</h3>
 </div>
 </div>
 <div
-id="analyses-with-control-variables-religiosity-subscales-and-constituent-well-being-variables"
+id="ii.-analyses-with-control-variables-religiosity-subscales-and-constituent-well-being-variables"
 class="section level1">
-<h1>Analyses with control variables, religiosity subscales, and
+<h1>II. Analyses with control variables, religiosity subscales, and
 constituent well-being variables</h1>
 <div id="csjas-nfm" class="section level3">
 <h3>1. CSJAS ~ NFM</h3>
@@ -731,8 +756,8 @@ orientation, and academic major.</p>
 ## 12 w/ controls NegAffect_POMP  CSJAS     1.23  0.06  2.55  0.48  0.630 0.13  0.05   1.64 (12, 146) 0.087</code></pre>
 </div>
 </div>
-<div id="full-output-for-all-analyses" class="section level1">
-<h1>Full output for all analyses</h1>
+<div id="iii.-full-output-for-all-analyses" class="section level1">
+<h1>III. Full output for all analyses</h1>
 <div id="csjas-nfm-1" class="section level3">
 <h3>1. CSJAS ~ NFM</h3>
 <pre><code>## [1] &quot;Model 1: CSJAS ~ NFM&quot;

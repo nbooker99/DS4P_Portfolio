@@ -1,5 +1,5 @@
 ---
-title: "Portfolio 8 - Main Analyses - Study 2"
+title: "Portfolio 8 - Study 2 Results"
 output: 
   html_document:
     theme: cosmo
@@ -9,10 +9,15 @@ output:
 ---
 ## Goal
 
-> The goal of this project is to demonstrate how the products projects 5 and 6 
+> The goal of this project is to demonstrate the usefullness of R in conducting and displaying the results of data analysis. The products of portfolio projects 5 and 6 contributed to this project. 
 
+> In this case, the entire document is the product. It shows the results of the main analyses for all preregistered hypotheses for Study 2 of my thesis. The study tests hypothesis regrading the relationship between a need for meaning, religiosity, critical social justice attitudes, and well-being.  Notably, the Table of Contents functionality makes the document very useful. 
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+> Part I of the document shows the first and simplest analysis which was conducted to test each hypothesis. The output in most cases is a regression output.
+
+> Part II of the document uses the function demonstrated in portoflio project 6 to display tables with the concentrated results of the expanded analyses for each hypothesis (because the study preregistration indicated that separate analyses would be run for different versions of well-being variables, different religiosity subscales, and with demographic control variables).
+
+> Part III of the document uses the function demonstrated in portfolio project 5 to display the full output of all analyses in case any particular results warrant a closer look at the full regression models (e.g., to examine why a key predictor became nonsignificant when demographic controls were added to the model——which demographic control were signficant?).
 
 
 ```{r setup, include=FALSE}
@@ -26,7 +31,7 @@ library(haven)
 data_for_analysis <- read_sav("data/data_for_analysis.sav")
 ```
 
-# Simplest Version of Main Analyses
+# I. Simplest Version of Main Analyses
 
 ### 1. Hypothesis: NFM will be positively associated with CSJAS.
 
@@ -108,7 +113,7 @@ WB ~ CSJAS
 summary(lm.beta(lm(WellBeing ~ CSJAS, data = data_for_analysis)))
 ```
 
-# Analyses with control variables, religiosity subscales, and constituent well-being variables
+# II. Analyses with control variables, religiosity subscales, and constituent well-being variables
 
 ```{r}
 # Function to run regressions and return formatted results
@@ -458,9 +463,28 @@ options(pillar.min_chars = Inf) # Don't truncate character columns
 results7
 ```
 
-# Full output for all analyses
+# III. Full output for all analyses
 
-x
+```{r echo = FALSE}
+# Function to run regressions using formulas created from strings
+run_regressions <- function(outcome_var, explanatory_var, dataset) {
+  # Model 1: Just the explanatory variable
+  print(paste("Model 1:", outcome_var, "~", explanatory_var))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~",
+                                    explanatory_var)), data = 
+                     dataset))))
+  
+  # Model 2: Add all controls
+  print(paste("Model 2:", outcome_var, "~", explanatory_var, "+ all controls"))
+  print(summary(lm.beta(lm(as.formula(paste(outcome_var, "~", 
+                                    explanatory_var, 
+    "+ PolLib + Gender + Age + SexOrien_dummy + Asian_dummy +
+    Black_or_Other_dummy + Hispanic_dummy + SocScience_dummy + 
+    STEM_dummy + Hum_Educ_dummy + Other_Undec_dummy")), 
+    data = dataset))))
+  cat("\n-------------------\n\n")
+}
+```
 
 ### 1. CSJAS ~ NFM
 
