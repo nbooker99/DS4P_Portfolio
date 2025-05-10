@@ -1,5 +1,5 @@
 ---
-title: "Portfolio 7"
+title: "Portfolio 7 - Cross-Referencing and Combining Datasets"
 output: 
   html_document:
     theme: cosmo
@@ -8,17 +8,18 @@ output:
     code_folding: show
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
 
-> Important note: This project invovled working with data with personal identifiers.
+## Goal
 
-> Goal: As part of my TA duties, I was asked to create a spreadsheet that contains the names, emails, classification, expected completion date, and induction date of WFU seniors who are anticipated to graduate in 2025 who are current members of Psi Chi. However, all this information is not located in one place. I have a spreadsheet of all current Psi Chi WFU chapter members since the chapter began (which contains names and induction date), many of whom are not current WFU seniors expecting to graduate nor current WFU students at all. And I have another spreadsheet of all WFU psychology majors (which contains names, emails, classification, and expected completion date). Rather than manaully trying to cross reference these two spreadsheets and compile the relevant information, I decided to use R to combine the datasets using certain criteria. The final product will be a spreadsheet that contains all WFU senior Psi Chi members (however, I won't show that here because it contains student's names).
+> Note: This project invovled working with data with personal identifiers; however, no personal identifiers are visisble or accessible in this project.
+
+> Goal: As part of my TA duties, I was asked to create a spreadsheet that contains the names, emails, classification, expected completion date, and induction date of WFU seniors who are anticipated to graduate in 2025 who are current members of Psi Chi. However, all this information was not located in one place. I had a spreadsheet of all current Psi Chi WFU chapter members since the chapter began (which contains names and induction date), many of whom are not current WFU seniors expecting to graduate nor current WFU students at all. And I had another spreadsheet of all WFU psychology majors (which contains names, emails, classification, and expected completion date). Rather than manaully trying to cross reference these two spreadsheets and compile the relevant information, I decided to use R to combine the datasets using certain criteria. The final product will be a spreadsheet that contains all WFU senior Psi Chi members.
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE, eval=TRUE)
 ```
 
-
+## Importing Data
 
 ```{r message=FALSE}
 library(tidyverse)
@@ -30,7 +31,10 @@ psych_majors <- read_excel("data/WFU_-_OUR_-_Burst_Student_Information_Profile_-
 new_members <- read_csv("data/new_members.csv")
 ```
 
+## Matching Formatting of Names
+
 Want to make sure there is a column in both spreadsheets with names formatted the same way.
+For some reason, in one spreadsheet, some names had "(Private)" at the beginning. Also, in one spreadsheet names were formatted "LastName, FirstName" but were formmated "FirstName LastName" in the other.
 
 ```{r}
 psych_majors <- psych_majors %>%
@@ -55,6 +59,8 @@ psichi_members <- psichi_members %>%
   )
 ```
 
+## Joining Datasets by Name
+
 ```{r}
 # Join the datasets to find psychology majors who are Psi Chi members
 current_student_psichi_members <- inner_join(
@@ -70,6 +76,12 @@ current_student_psichi_members <- current_student_psichi_members %>%
   relocate(email, .after = name) %>% 
   mutate(`In Psych Majors Spreadsheet` = TRUE)
 ```
+
+## Adding New Members
+
+I also have a spreadsheet which contains Psi Chi members who should appear on the final spreadsheet but are not located in the current Psi Chi members spreadsheet.
+
+Here I create a spreadsheet which contains the students who are new Psi Chi members and who are also in the Psych Majors spreadsheet. I also had to make sure that students who were on the new Psi Chi members spreadsheet but who were not on the Psych Majors spreadsheet were also added (because some new Psi Chi memebers were sophomors who had not yet officially declared their major). I document this with a `In Psych Majors Spreadsheet` variable. This results in some rows (students) having missing data on some variables which were only contained in the Psych Majors spreadsheet.
 
 ```{r}
 current_student_psichi_new_members <- left_join(
@@ -88,15 +100,20 @@ current_student_psichi_new_members <- current_student_psichi_new_members %>%
                                                       `Program of Study Completion Status`))
 ```
 
+## Binding Rows to Create Final Dataset
+
 ```{r}
 current_student_psichi_members <- bind_rows(current_student_psichi_members, current_student_psichi_new_members)
 ```
+
+Here is a glimpse at what the final dataset looks like (excluding personal identifiers). It actually contains all Psi Chi members who are current WFU students and contains variables from which graduating seniors can be identified (which was the goal of this project).
 
 ```{r}
 current_student_psichi_members %>% 
   select(-name, -`WFU Email Address`, -email)
 ```
 
+Here is the code where I exported the dataset as an excel file.
 
 ```{r eval=FALSE}
 write_excel_csv(current_student_psichi_members, file = "/Users/noahbooker/Documents/Documents/TA/Office/Psi Chi/current_student_psichi_members_Spring2025.csv")

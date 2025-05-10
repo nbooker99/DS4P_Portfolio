@@ -1,5 +1,5 @@
 ---
-title: "Portfolio 6"
+title: "Portfolio 6 - Function for Regression Output Table"
 output: 
   html_document:
     theme: cosmo
@@ -9,8 +9,6 @@ output:
 ---
 
 ## Goal
-
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
 
 > The goal of this project was to build upon the previous one in which I used a function and loop to more easily run many regression analyses based on a combination of variables. This project seeks to concentrate the output of those regression analyses. Since, in all the regression analyses that I run for this study, I am mainly interested in the regression coefficient (and related statistics) of a single predictor, examining the full output of many regression analyses is unnecessary. This project instead aims to extract the relevant statistics from the regression output and put it into a table for easier digestion.
 

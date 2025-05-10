@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio 7</title>
+<title>Portfolio 7 - Cross-Referencing and Combining Datasets</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,40 +378,39 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Portfolio 7</h1>
+<h1 class="title toc-ignore">Portfolio 7 - Cross-Referencing and
+Combining Datasets</h1>
 
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
-</blockquote>
-<blockquote>
-<p>Important note: This project invovled working with data with personal
-identifiers.</p>
+<p>Note: This project invovled working with data with personal
+identifiers; however, no personal identifiers are visisble or accessible
+in this project.</p>
 </blockquote>
 <blockquote>
 <p>Goal: As part of my TA duties, I was asked to create a spreadsheet
 that contains the names, emails, classification, expected completion
 date, and induction date of WFU seniors who are anticipated to graduate
 in 2025 who are current members of Psi Chi. However, all this
-information is not located in one place. I have a spreadsheet of all
+information was not located in one place. I had a spreadsheet of all
 current Psi Chi WFU chapter members since the chapter began (which
 contains names and induction date), many of whom are not current WFU
-seniors expecting to graduate nor current WFU students at all. And I
-have another spreadsheet of all WFU psychology majors (which contains
-names, emails, classification, and expected completion date). Rather
-than manaully trying to cross reference these two spreadsheets and
-compile the relevant information, I decided to use R to combine the
-datasets using certain criteria. The final product will be a spreadsheet
-that contains all WFU senior Psi Chi members (however, I won’t show that
-here because it contains student’s names).</p>
+seniors expecting to graduate nor current WFU students at all. And I had
+another spreadsheet of all WFU psychology majors (which contains names,
+emails, classification, and expected completion date). Rather than
+manaully trying to cross reference these two spreadsheets and compile
+the relevant information, I decided to use R to combine the datasets
+using certain criteria. The final product will be a spreadsheet that
+contains all WFU senior Psi Chi members.</p>
 </blockquote>
 <pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, eval=TRUE)</code></pre>
+</div>
+<div id="importing-data" class="section level2">
+<h2>Importing Data</h2>
 <pre class="r"><code>library(tidyverse)
 library(stringr)
 library(readr)
@@ -419,8 +418,14 @@ library(readxl)
 psichi_members &lt;- read_csv(&quot;data/Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv&quot;)
 psych_majors &lt;- read_excel(&quot;data/WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx&quot;)
 new_members &lt;- read_csv(&quot;data/new_members.csv&quot;)</code></pre>
+</div>
+<div id="matching-formatting-of-names" class="section level2">
+<h2>Matching Formatting of Names</h2>
 <p>Want to make sure there is a column in both spreadsheets with names
-formatted the same way.</p>
+formatted the same way. For some reason, in one spreadsheet, some names
+had “(Private)” at the beginning. Also, in one spreadsheet names were
+formatted “LastName, FirstName” but were formmated “FirstName LastName”
+in the other.</p>
 <pre class="r"><code>psych_majors &lt;- psych_majors %&gt;%
   mutate(
     # Remove &quot;(Private)&quot; suffix if present
@@ -441,6 +446,9 @@ psichi_members &lt;- psichi_members %&gt;%
     # Trim any extra spaces
     name = str_trim(name)
   )</code></pre>
+</div>
+<div id="joining-datasets-by-name" class="section level2">
+<h2>Joining Datasets by Name</h2>
 <pre class="r"><code># Join the datasets to find psychology majors who are Psi Chi members
 current_student_psichi_members &lt;- inner_join(
   psych_majors,
@@ -454,6 +462,21 @@ current_student_psichi_members &lt;- current_student_psichi_members %&gt;%
          email = &quot;&quot;) %&gt;%  # Create empty email column
   relocate(email, .after = name) %&gt;% 
   mutate(`In Psych Majors Spreadsheet` = TRUE)</code></pre>
+</div>
+<div id="adding-new-members" class="section level2">
+<h2>Adding New Members</h2>
+<p>I also have a spreadsheet which contains Psi Chi members who should
+appear on the final spreadsheet but are not located in the current Psi
+Chi members spreadsheet.</p>
+<p>Here I create a spreadsheet which contains the students who are new
+Psi Chi members and who are also in the Psych Majors spreadsheet. I also
+had to make sure that students who were on the new Psi Chi members
+spreadsheet but who were not on the Psych Majors spreadsheet were also
+added (because some new Psi Chi memebers were sophomors who had not yet
+officially declared their major). I document this with a
+<code>In Psych Majors Spreadsheet</code> variable. This results in some
+rows (students) having missing data on some variables which were only
+contained in the Psych Majors spreadsheet.</p>
 <pre class="r"><code>current_student_psichi_new_members &lt;- left_join(
   new_members,
   psych_majors,
@@ -468,7 +491,14 @@ current_student_psichi_new_members &lt;- current_student_psichi_new_members %&gt
          `Program of Study Completion Status` = ifelse(`In Psych Majors Spreadsheet` == FALSE, 
                                                       &quot;Unknown&quot;, 
                                                       `Program of Study Completion Status`))</code></pre>
+</div>
+<div id="binding-rows-to-create-final-dataset" class="section level2">
+<h2>Binding Rows to Create Final Dataset</h2>
 <pre class="r"><code>current_student_psichi_members &lt;- bind_rows(current_student_psichi_members, current_student_psichi_new_members)</code></pre>
+<p>Here is a glimpse at what the final dataset looks like (excluding
+personal identifiers). It actually contains all Psi Chi members who are
+current WFU students and contains variables from which graduating
+seniors can be identified (which was the goal of this project).</p>
 <pre class="r"><code>current_student_psichi_members %&gt;% 
   select(-name, -`WFU Email Address`, -email)</code></pre>
 <pre><code>## # A tibble: 91 × 5
@@ -489,7 +519,9 @@ current_student_psichi_new_members &lt;- current_student_psichi_new_members %&gt
 ## #   ²​`Program of Study Completion Status`, ³​`Expected Completion Date`
 ## # ℹ 2 more variables: `Induction Date` &lt;chr&gt;,
 ## #   `In Psych Majors Spreadsheet` &lt;lgl&gt;</code></pre>
+<p>Here is the code where I exported the dataset as an excel file.</p>
 <pre class="r"><code>write_excel_csv(current_student_psichi_members, file = &quot;/Users/noahbooker/Documents/Documents/TA/Office/Psi Chi/current_student_psichi_members_Spring2025.csv&quot;)</code></pre>
+</div>
 
 
 

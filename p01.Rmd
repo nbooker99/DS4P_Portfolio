@@ -1,5 +1,5 @@
 ---
-title: "Graphing the Effect of Intergroup Contact on Political Polarization"
+title: "Portfolio 1 - Graphing the Effect of Intergroup Contact on Political Polarization"
 output: 
   html_document:
     theme: cosmo
