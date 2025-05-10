@@ -383,6 +383,8 @@ div.tocify {
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
 <p>The projects should be numbered consecutively (i.e., in the order in
 which you began them), and should include for each project a description
@@ -390,6 +392,40 @@ of the goal, the product (computer program, hand graph, computer graph,
 etc.), the data, and some interpretation. Reports must be reproducible
 and of high quality in terms of writing, grammar, presentation, etc.</p>
 </blockquote>
+<blockquote>
+<p>The goal of this project was to build upon the previous one in which
+I used a function and loop to more easily run many regression analyses
+based on a combination of variables. This project seeks to concentrate
+the output of those regression analyses. Since, in all the regression
+analyses that I run for this study, I am mainly interested in the
+regression coefficient (and related statistics) of a single predictor,
+examining the full output of many regression analyses is unnecessary.
+This project instead aims to extract the relevant statistics from the
+regression output and put it into a table for easier digestion.</p>
+</blockquote>
+<blockquote>
+<p>The product of this project will be a function which will produce a
+table which contains the output of interest for a series of regression
+analyses.</p>
+</blockquote>
+<blockquote>
+<p>The data is the same data as project 5. The example given at the end
+will be running regression analyses to test the hypothesis that
+religiosity will predict higher well-being.</p>
+</blockquote>
+<pre class="r"><code>library(tidyverse)
+library(haven)
+library(lm.beta)
+data_for_analysis &lt;- read_sav(&quot;data/data_for_analysis.sav&quot;)</code></pre>
+</div>
+<div id="starting-pieces" class="section level2">
+<h2>Starting Pieces</h2>
+<p>Below is one version of the run_regressions function that I developed
+in the last project.</p>
+<p>Note: At this point, I had figured out that the the regular lm()
+function doesn’t give standardized regression coefficients, and I found
+online that a way to do that was to add scale() around the variables. I
+later figure out a better way to do that.</p>
 <pre class="r"><code>Relig_vars &lt;- c(&quot;scale(Relig)&quot;, &quot;scale(Relig_inter)&quot;, &quot;scale(Relig_intra)&quot;)
 expl_vars &lt;- c(&quot;scale(NFM)&quot;)
 
@@ -417,6 +453,9 @@ for(i in 1:length(Relig_vars)) {
     run_regressions(Relig_vars[i], expl_vars[j])
   }
 }</code></pre>
+<p>Here is some code where I was figuring out that I could extract
+specific statistics and values from regression output and store them in
+a table.</p>
 <pre class="r"><code>record_regr_output &lt;- function()
 regr_summary &lt;- summary(lm(scale(Relig) ~ scale(NFM), data = data_for_analysis))
 
@@ -442,8 +481,11 @@ regr_output &lt;- tibble(
 )
 
 regr_output</code></pre>
-<p>I couldn’t figure out how to combine these two pieces, so I asked
-Claude for help.</p>
+</div>
+<div id="help-from-claude" class="section level2">
+<h2>Help from Claude</h2>
+<p>Ultimately, I wanted to combine these two processes, but I couldn’t
+figure out how—so I asked Claude.ai for help.</p>
 <pre class="r"><code>Relig_vars &lt;- c(&quot;scale(Relig)&quot;, &quot;scale(Relig_inter)&quot;, &quot;scale(Relig_intra)&quot;)
 expl_vars &lt;- c(&quot;scale(NFM)&quot;)
 
@@ -525,8 +567,20 @@ for(i in 1:length(Relig_vars)) {
 
 # View the results table
 all_results</code></pre>
+<pre><code>## # A tibble: 6 × 10
+##   model        predictor outcome  beta     t     t_p      R   adjR F_        F_p
+##   &lt;chr&gt;        &lt;chr&gt;     &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt;
+## 1 Model 1: sc… scale(NF… scale(… 0.332  4.25 3.76e-5 0.110  0.104  F(1,… 3.76e-5
+## 2 Model 2: sc… scale(NF… scale(… 0.258  3.12 2.23e-3 0.243  0.182  F(11… 5.10e-5
+## 3 Model 1: sc… scale(NF… scale(… 0.298  3.78 2.30e-4 0.0890 0.0828 F(1,… 2.30e-4
+## 4 Model 2: sc… scale(NF… scale(… 0.244  2.87 4.72e-3 0.206  0.142  F(11… 6.64e-4
+## 5 Model 1: sc… scale(NF… scale(… 0.335  4.29 3.23e-5 0.112  0.106  F(1,… 3.23e-5
+## 6 Model 2: sc… scale(NF… scale(… 0.253  3.08 2.53e-3 0.253  0.192  F(11… 2.49e-5</code></pre>
+<p>As you can see, the above version works. But I ended up making some
+changes.</p>
+</div>
 <div id="working-version" class="section level2">
-<h2>4. Working Version</h2>
+<h2>Working Version</h2>
 <p>There were steps in between the version above and the version below
 which I failed to document, but below is the code for the function that
 I ended up using for my analyses.</p>
@@ -534,17 +588,20 @@ I ended up using for my analyses.</p>
 <p>• creates tibble called results,</p>
 <p>• runs a regression analysis on the variables plugged into the
 function and assigns the results to an object called regr_summary1,</p>
-<p>• extracts the pieces of the results that I’m interested in and adds
-them to the results tibble,</p>
+<p>• extracts the pieces of the results that I’m interested in (rounding
+them to the appropraite number of decimal places) and adds them to the
+results tibble,</p>
 <p>• runs a second regression analysis which adds all the control
 variables to the model and assigns the results to an object called
 regr_summary2, and</p>
 <p>• extracts the pieces of the results that I’m interested them and
 adds them as another row in the results tibble.</p>
-<p>The loop_function…</p>
+<p>The loop_regressions function…</p>
 <p>• runs the compile_regressions function for each combination of
-outcome variable and explanatory variable that I give it, and</p>
-<p>• adds new rows to the results table for each iteration.</p>
+outcome variable and explanatory variable that I give it,</p>
+<p>• adds new rows to the results table for each iteration, and</p>
+<p>• returns the results tibble which contains the desired output for
+all regression analyses.</p>
 <pre class="r"><code># Function to run regressions and return formatted results
 compile_regressions &lt;- function(outcome_var, explanatory_var, dataset) {
   # Results for both models
@@ -644,11 +701,22 @@ expl_vars &lt;- c(&quot;Relig&quot;, &quot;Relig_inter&quot;, &quot;Relig_intra&
 
 results6 &lt;- loop_regressions(outcome_vars, expl_vars, data_for_analysis)
 
-options(width = 2000)           # Increase console width
-options(tibble.width = Inf)     # Show all columns
-options(pillar.min_chars = Inf) # Don&#39;t truncate character columns
-
 results6</code></pre>
+<pre><code>## # A tibble: 36 × 13
+##    model outcome predictor b     B     SE    t     t_p   R     adjR     F_ df   
+##    &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;
+##  1 no c… WellBe… Relig     -0.09 -0.01 0.72  -0.12 0.903 0.00  -0.01  0.01 (1, …
+##  2 w/ c… WellBe… Relig     -0.39 -0.04 0.73  -0.53 0.600 0.23  0.16   3.4  (12,…
+##  3 no c… WellBe… Relig_in… -0.09 -0.01 0.75  -0.13 0.900 0.00  -0.01  0.02 (1, …
+##  4 w/ c… WellBe… Relig_in… -0.24 -0.03 0.74  -0.33 0.742 0.23  0.16   3.39 (12,…
+##  5 no c… WellBe… Relig_in… -0.08 -0.01 0.67  -0.11 0.910 0.00  -0.01  0.01 (1, …
+##  6 w/ c… WellBe… Relig_in… -0.42 -0.05 0.68  -0.62 0.538 0.23  0.16   3.42 (12,…
+##  7 no c… Anxiet… Relig     0.92  0.04  1.73  0.53  0.594 0.00  -0.00  0.29 (1, …
+##  8 w/ c… Anxiet… Relig     1.72  0.08  1.81  0.95  0.343 0.18  0.11   2.47 (12,…
+##  9 no c… Anxiet… Relig_in… 0.81  0.04  1.78  0.46  0.649 0.00  -0.01  0.21 (1, …
+## 10 w/ c… Anxiet… Relig_in… 1.33  0.06  1.83  0.72  0.471 0.18  0.10   2.44 (12,…
+## # ℹ 26 more rows
+## # ℹ 1 more variable: F_p &lt;chr&gt;</code></pre>
 </div>
 <div id="interpretation" class="section level2">
 <h2>Interpretation</h2>
@@ -659,8 +727,23 @@ significantly predicted well-being (or one of the constituent well-being
 variables).</p>
 <pre class="r"><code>results6 %&gt;% 
   arrange(t_p)</code></pre>
+<pre><code>## # A tibble: 36 × 13
+##    model outcome predictor b     B     SE    t     t_p   R     adjR     F_ df   
+##    &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;
+##  1 w/ c… Anxiet… Relig_in… 1.75  0.09  1.69  1.04  0.301 0.18  0.11   2.49 (12,…
+##  2 w/ c… Anxiet… Relig     1.72  0.08  1.81  0.95  0.343 0.18  0.11   2.47 (12,…
+##  3 w/ c… NegAff… Relig_in… 1.07  0.08  1.26  0.84  0.401 0.13  0.05   1.69 (12,…
+##  4 no c… NegAff… Relig_in… 0.86  0.06  1.16  0.74  0.462 0.00  -0.00  0.54 (1, …
+##  5 w/ c… Anxiet… Relig_in… 1.33  0.06  1.83  0.72  0.471 0.18  0.10   2.44 (12,…
+##  6 no c… PosAff… Relig_in… 0.87  0.05  1.31  0.66  0.509 0.00  -0.00  0.44 (1, …
+##  7 w/ c… WellBe… Relig_in… -0.42 -0.05 0.68  -0.62 0.538 0.23  0.16   3.42 (12,…
+##  8 no c… Anxiet… Relig_in… 0.89  0.05  1.60  0.55  0.581 0.00  -0.00  0.31 (1, …
+##  9 no c… Anxiet… Relig     0.92  0.04  1.73  0.53  0.594 0.00  -0.00  0.29 (1, …
+## 10 w/ c… WellBe… Relig     -0.39 -0.04 0.73  -0.53 0.600 0.23  0.16   3.4  (12,…
+## # ℹ 26 more rows
+## # ℹ 1 more variable: F_p &lt;chr&gt;</code></pre>
 <p>Now we can see that the smallest p-value is .301. So, neither
-religiosity nor either of its subscale significantly predicted any
+religiosity nor either of its subscales significantly predicted any
 well-being variables either in models with or without demographic
 control variables.</p>
 <p>There were many other hypotheses of the study that were tested using
@@ -671,7 +754,7 @@ relevant statistics from the regression output to add to the table, or
 the part where it pastes the names of the demographic control variables)
 that are highly specific to this data and would have to be modified for
 other uses (as I did for the moderated regression version).</p>
-<p>I could, in the future, try to make this funciton more
+<p>I could, in the future, try to make this function more
 generalizable.</p>
 </div>
 

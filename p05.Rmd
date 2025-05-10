@@ -184,6 +184,8 @@ First, I realized that in the examples above, I would have to examine 6 (well-be
 
 Instead, I decided to have one single-predictor regression model and another model which added all demographic control variables at once.
 
+I re-added dataset as an argument to the function to make it more adaptable.
+
 I also added code (cat("\n-------------------\n\n")) which adds a line to separate the output of each iterartion to make the output easier to read.
 
 ```{r echo = FALSE}
