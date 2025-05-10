@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio 9 - CFA</title>
+<title>Portfolio 9 - Confirmatory Factor Analysis</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,24 +378,42 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Portfolio 9 - CFA</h1>
+<h1 class="title toc-ignore">Portfolio 9 - Confirmatory Factor
+Analysis</h1>
 
 </div>
 
 
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>The goal of this project is to run a confirmatory factor analysis
+(CFA) on the a seven-item critical social justice attitudes scale
+(CSJAS) which was previosuly created using exploratory factor analysis
+(EFA) in SPSS. I also run a CFA on another seven-item scale used in the
+study, the GAD-7 anxiety scale, to compare the fit indices.</p>
 </blockquote>
+<blockquote>
+<p>The data is from 149 undergraduates. The CFA is run on a randomly
+split half of the sample.</p>
+</blockquote>
+<blockquote>
+<p>The final product is the interpretation of the CFA which was used in
+the write-up of this study.</p>
+</blockquote>
+</div>
+<div id="loading-data-and-packages" class="section level2">
+<h2>Loading data and packages</h2>
 <pre class="r"><code>library(haven)
 DataForAnalysis &lt;- read_sav(&quot;data/DataForAnalysis.sav&quot;)
 library(rsample)
 library(lavaan)</code></pre>
 <pre><code>## This is lavaan 0.6-19
 ## lavaan is FREE software! Please report any bugs.</code></pre>
+</div>
+<div id="setting-seed-and-splitting-data" class="section level2">
+<h2>Setting seed and splitting data</h2>
+<p>Note: Claude.ai assisted in creating the code for this project.</p>
 <pre class="r"><code># Set a seed for reproducibility
 set.seed(1234)
 
@@ -412,6 +430,9 @@ dim(CFA_data)</code></pre>
 <pre><code>## [1]  74 108</code></pre>
 <pre class="r"><code>#Write out EFA data to replicate EFA in SPSS.
 #write_sav(EFA_data, &quot;EFA_data.sav&quot;)</code></pre>
+</div>
+<div id="conducting-cfa" class="section level2">
+<h2>Conducting CFA</h2>
 <pre class="r"><code># Define your CFA model with a different name for the latent factor
 cfa_model &lt;- &#39;
   # Define one-factor structure with a different name
@@ -498,6 +519,109 @@ summary(cfa_fit, fit.measures = TRUE, standardized = TRUE)</code></pre>
 ##    .CSJAS17           0.798    0.143    5.580    0.000    0.798    0.546
 ##    .CSJAS28           0.487    0.091    5.375    0.000    0.487    0.462
 ##     CSJAS_Factor      0.703    0.183    3.847    0.000    1.000    1.000</code></pre>
+</div>
+<div id="conducting-comparison-cfa" class="section level2">
+<h2>Conducting Comparison CFA</h2>
+<pre class="r"><code># CFA for GAD-7 for comparison
+cfa_model2 &lt;-
+  &#39;GAD7 =~ Q42_1 + Q42_2 + Q42_3 + Q42_4 + Q42_5 + Q42_6 + Q42_7&#39;
+
+cfa_fit2 &lt;- cfa(cfa_model2, 
+               data = CFA_data, 
+               estimator = &quot;ML&quot;)
+
+# Get a summary of the results
+summary(cfa_fit2, fit.measures = TRUE, standardized = TRUE)</code></pre>
+<pre><code>## lavaan 0.6-19 ended normally after 26 iterations
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of model parameters                        14
+## 
+##                                                   Used       Total
+##   Number of observations                            72          74
+## 
+## Model Test User Model:
+##                                                       
+##   Test statistic                                22.402
+##   Degrees of freedom                                14
+##   P-value (Chi-square)                           0.071
+## 
+## Model Test Baseline Model:
+## 
+##   Test statistic                               419.847
+##   Degrees of freedom                                21
+##   P-value                                        0.000
+## 
+## User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    0.979
+##   Tucker-Lewis Index (TLI)                       0.968
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)               -478.440
+##   Loglikelihood unrestricted model (H1)             NA
+##                                                       
+##   Akaike (AIC)                                 984.881
+##   Bayesian (BIC)                              1016.754
+##   Sample-size adjusted Bayesian (SABIC)        972.645
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.091
+##   90 Percent confidence interval - lower         0.000
+##   90 Percent confidence interval - upper         0.159
+##   P-value H_0: RMSEA &lt;= 0.050                    0.164
+##   P-value H_0: RMSEA &gt;= 0.080                    0.644
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.046
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                             Standard
+##   Information                                 Expected
+##   Information saturated (h1) model          Structured
+## 
+## Latent Variables:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##   GAD7 =~                                                               
+##     Q42_1             1.000                               0.837    0.871
+##     Q42_2             1.110    0.092   12.054    0.000    0.929    0.937
+##     Q42_3             1.107    0.099   11.146    0.000    0.926    0.905
+##     Q42_4             1.005    0.095   10.626    0.000    0.841    0.884
+##     Q42_5             0.797    0.103    7.705    0.000    0.667    0.739
+##     Q42_6             0.554    0.110    5.061    0.000    0.464    0.546
+##     Q42_7             0.708    0.097    7.297    0.000    0.593    0.714
+## 
+## Variances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##    .Q42_1             0.223    0.044    5.081    0.000    0.223    0.241
+##    .Q42_2             0.119    0.031    3.869    0.000    0.119    0.121
+##    .Q42_3             0.191    0.041    4.670    0.000    0.191    0.182
+##    .Q42_4             0.197    0.040    4.948    0.000    0.197    0.218
+##    .Q42_5             0.369    0.065    5.655    0.000    0.369    0.453
+##    .Q42_6             0.507    0.086    5.879    0.000    0.507    0.702
+##    .Q42_7             0.338    0.059    5.703    0.000    0.338    0.491
+##     GAD7              0.700    0.151    4.636    0.000    1.000    1.000</code></pre>
+</div>
+<div id="interpretation-excerpt-from-results-section-of-thesis"
+class="section level2">
+<h2>Interpretation: Excerpt from Results Section of Thesis</h2>
+<blockquote>
+<p>The final seven-item scale had factor loadings ranging from .60 to
+.77 and a single factor explaining 47.1% of variance and alpha = .86.
+CFA was performed on a randomly split half of the sample and indicated
+excellent fit: CFI = 0.98, TLI = 0.98, RMSEA = 0.07, SRMR = 0.04, χ²
+(14, 74) = 18.32 (p = 0.192). For comparison, the commonly-used measure
+of anxiety, the GAD-7 (Spitzer et al., 2006), which is also a seven-item
+scale, had CFI = 0.98, TLI = 0.97, RMSEA = 0.09, SRMR = 0.05, χ² (14,
+72) = 22.40 (p = 0.071), a slightly worse fit, on the same randomly
+split half of the sample.</p>
+</blockquote>
+</div>
 
 
 

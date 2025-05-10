@@ -1,5 +1,5 @@
 ---
-title: "Portfolio 9 - CFA"
+title: "Portfolio 9 - Confirmatory Factor Analysis"
 output: 
   html_document:
     theme: cosmo
@@ -8,13 +8,20 @@ output:
     code_folding: show
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
+## Goal
+
+> The goal of this project is to run a confirmatory factor analysis (CFA) on the a seven-item critical social justice attitudes scale (CSJAS) which was previosuly created using exploratory factor analysis (EFA) in SPSS. I also run a CFA on another seven-item scale used in the study, the GAD-7 anxiety scale, to compare the fit indices.
+
+> The data is from 149 undergraduates. The CFA is run on a randomly split half of the sample.
+
+> The final product is the interpretation of the CFA which was used in the write-up of this study.
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Loading data and packages
 
 ```{r}
 library(haven)
@@ -22,6 +29,10 @@ DataForAnalysis <- read_sav("data/DataForAnalysis.sav")
 library(rsample)
 library(lavaan)
 ```
+
+## Setting seed and splitting data
+
+Note: Claude.ai assisted in creating the code for this project.
 
 ```{r}
 # Set a seed for reproducibility
@@ -38,11 +49,14 @@ dim(EFA_data)
 CFA_data <- testing(data_split)
 dim(CFA_data)
 ```
+
+
 ```{r}
 #Write out EFA data to replicate EFA in SPSS.
 #write_sav(EFA_data, "EFA_data.sav")
 ```
 
+## Conducting CFA
 
 ```{r}
 # Define your CFA model with a different name for the latent factor
@@ -60,3 +74,21 @@ cfa_fit <- cfa(cfa_model,
 summary(cfa_fit, fit.measures = TRUE, standardized = TRUE)
 ```
 
+## Conducting Comparison CFA
+
+```{r}
+# CFA for GAD-7 for comparison
+cfa_model2 <-
+  'GAD7 =~ Q42_1 + Q42_2 + Q42_3 + Q42_4 + Q42_5 + Q42_6 + Q42_7'
+
+cfa_fit2 <- cfa(cfa_model2, 
+               data = CFA_data, 
+               estimator = "ML")
+
+# Get a summary of the results
+summary(cfa_fit2, fit.measures = TRUE, standardized = TRUE)
+```
+
+## Interpretation: Excerpt from Results Section of Thesis
+
+> The final seven-item scale had factor loadings ranging from .60 to .77 and a single factor explaining 47.1% of variance and alpha = .86. CFA was performed on a randomly split half of the sample and indicated excellent fit: CFI = 0.98, TLI = 0.98, RMSEA = 0.07, SRMR = 0.04, χ² (14, 74) = 18.32 (p = 0.192). For comparison, the commonly-used measure of anxiety, the GAD-7 (Spitzer et al., 2006), which is also a seven-item scale, had CFI = 0.98, TLI = 0.97, RMSEA = 0.09, SRMR = 0.05, χ² (14, 72) = 22.40 (p = 0.071), a slightly worse fit, on the same randomly split half of the sample.
