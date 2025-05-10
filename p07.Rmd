@@ -10,21 +10,24 @@ output:
 
 > The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
 
+> Important note: This project invovled working with data with personal identifiers.
+
+> Goal: As part of my TA duties, I was asked to create a spreadsheet that contains the names, emails, classification, expected completion date, and induction date of WFU seniors who are anticipated to graduate in 2025 who are current members of Psi Chi. However, all this information is not located in one place. I have a spreadsheet of all current Psi Chi WFU chapter members since the chapter began (which contains names and induction date), many of whom are not current WFU seniors expecting to graduate nor current WFU students at all. And I have another spreadsheet of all WFU psychology majors (which contains names, emails, classification, and expected completion date). Rather than manaully trying to cross reference these two spreadsheets and compile the relevant information, I decided to use R to combine the datasets using certain criteria. The final product will be a spreadsheet that contains all WFU senior Psi Chi members (however, I won't show that here because it contains student's names).
 
 ```{r setup, include=TRUE}
-knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval=TRUE)
 ```
 
-Goal: I have to create a spreadsheet that contains the names, emails, classification, expected completion date, and induction date of WFU seniors who are anticipated to graduate in 2025 who are current members of Psi Chi. I have a spreadsheet of all current Psi Chi WFU chapter members since the chapter began, many of whom are not current WFU seniors expecting to graduate nor current WFU students at all. I have another spreadsheet of all WFU psychology majors. 
+
 
 ```{r message=FALSE}
 library(tidyverse)
 library(stringr)
 library(readr)
 library(readxl)
-psichi_members <- read_csv("Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv")
-psych_majors <- read_excel("WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx")
-new_members <- read_csv("new_members.csv")
+psichi_members <- read_csv("data/Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv")
+psych_majors <- read_excel("data/WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx")
+new_members <- read_csv("data/new_members.csv")
 ```
 
 Want to make sure there is a column in both spreadsheets with names formatted the same way.
@@ -89,8 +92,13 @@ current_student_psichi_new_members <- current_student_psichi_new_members %>%
 current_student_psichi_members <- bind_rows(current_student_psichi_members, current_student_psichi_new_members)
 ```
 
-
 ```{r}
+current_student_psichi_members %>% 
+  select(-name, -`WFU Email Address`, -email)
+```
+
+
+```{r eval=FALSE}
 write_excel_csv(current_student_psichi_members, file = "/Users/noahbooker/Documents/Documents/TA/Office/Psi Chi/current_student_psichi_members_Spring2025.csv")
 ```
 

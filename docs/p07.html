@@ -390,21 +390,35 @@ of the goal, the product (computer program, hand graph, computer graph,
 etc.), the data, and some interpretation. Reports must be reproducible
 and of high quality in terms of writing, grammar, presentation, etc.</p>
 </blockquote>
-<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, eval=FALSE)</code></pre>
-<p>Goal: I have to create a spreadsheet that contains the names, emails,
-classification, expected completion date, and induction date of WFU
-seniors who are anticipated to graduate in 2025 who are current members
-of Psi Chi. I have a spreadsheet of all current Psi Chi WFU chapter
-members since the chapter began, many of whom are not current WFU
-seniors expecting to graduate nor current WFU students at all. I have
-another spreadsheet of all WFU psychology majors.</p>
+<blockquote>
+<p>Important note: This project invovled working with data with personal
+identifiers.</p>
+</blockquote>
+<blockquote>
+<p>Goal: As part of my TA duties, I was asked to create a spreadsheet
+that contains the names, emails, classification, expected completion
+date, and induction date of WFU seniors who are anticipated to graduate
+in 2025 who are current members of Psi Chi. However, all this
+information is not located in one place. I have a spreadsheet of all
+current Psi Chi WFU chapter members since the chapter began (which
+contains names and induction date), many of whom are not current WFU
+seniors expecting to graduate nor current WFU students at all. And I
+have another spreadsheet of all WFU psychology majors (which contains
+names, emails, classification, and expected completion date). Rather
+than manaully trying to cross reference these two spreadsheets and
+compile the relevant information, I decided to use R to combine the
+datasets using certain criteria. The final product will be a spreadsheet
+that contains all WFU senior Psi Chi members (however, I won’t show that
+here because it contains student’s names).</p>
+</blockquote>
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, eval=TRUE)</code></pre>
 <pre class="r"><code>library(tidyverse)
 library(stringr)
 library(readr)
 library(readxl)
-psichi_members &lt;- read_csv(&quot;Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv&quot;)
-psych_majors &lt;- read_excel(&quot;WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx&quot;)
-new_members &lt;- read_csv(&quot;new_members.csv&quot;)</code></pre>
+psichi_members &lt;- read_csv(&quot;data/Psi Chi member list March 2025.xls.xlsx - Psi Chi member list March 2025.csv&quot;)
+psych_majors &lt;- read_excel(&quot;data/WFU_-_OUR_-_Burst_Student_Information_Profile_-_by_Major_3.6.2025 Psi Chi.xlsx&quot;)
+new_members &lt;- read_csv(&quot;data/new_members.csv&quot;)</code></pre>
 <p>Want to make sure there is a column in both spreadsheets with names
 formatted the same way.</p>
 <pre class="r"><code>psych_majors &lt;- psych_majors %&gt;%
@@ -455,6 +469,26 @@ current_student_psichi_new_members &lt;- current_student_psichi_new_members %&gt
                                                       &quot;Unknown&quot;, 
                                                       `Program of Study Completion Status`))</code></pre>
 <pre class="r"><code>current_student_psichi_members &lt;- bind_rows(current_student_psichi_members, current_student_psichi_new_members)</code></pre>
+<pre class="r"><code>current_student_psichi_members %&gt;% 
+  select(-name, -`WFU Email Address`, -email)</code></pre>
+<pre><code>## # A tibble: 91 × 5
+##    Class Standing at Start of Pe…¹ Program of Study Com…² Expected Completion …³
+##    &lt;chr&gt;                           &lt;chr&gt;                  &lt;chr&gt;                 
+##  1 Junior                          &lt;NA&gt;                   2026-04-29            
+##  2 Junior                          &lt;NA&gt;                   2026-04-29            
+##  3 Senior                          Applied for Completion 2025-04-28            
+##  4 Senior                          &lt;NA&gt;                   2026-04-29            
+##  5 Senior                          Applied for Completion 2025-04-28            
+##  6 Senior                          Applied for Completion 2025-04-28            
+##  7 Senior                          Applied for Completion 2025-04-28            
+##  8 Junior                          &lt;NA&gt;                   2026-04-29            
+##  9 Senior                          Applied for Completion 2025-04-28            
+## 10 Junior                          &lt;NA&gt;                   2026-04-29            
+## # ℹ 81 more rows
+## # ℹ abbreviated names: ¹​`Class Standing at Start of Period`,
+## #   ²​`Program of Study Completion Status`, ³​`Expected Completion Date`
+## # ℹ 2 more variables: `Induction Date` &lt;chr&gt;,
+## #   `In Psych Majors Spreadsheet` &lt;lgl&gt;</code></pre>
 <pre class="r"><code>write_excel_csv(current_student_psichi_members, file = &quot;/Users/noahbooker/Documents/Documents/TA/Office/Psi Chi/current_student_psichi_members_Spring2025.csv&quot;)</code></pre>
 
 
