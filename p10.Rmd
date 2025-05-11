@@ -1,9 +1,20 @@
 ---
-title: "Portfolio 10"
+title: "Portfolio 10 - Creating a Cross-Cultural Interviewee Demographics Presentation"
+output: 
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    code_folding: show
 ---
 
-> The projects should be numbered consecutively (i.e., in the order in which you began them), and should include for each project a description of the goal, the product (computer program, hand graph, computer graph, etc.), the data, and some interpretation. Reports must be reproducible and of high quality in terms of writing, grammar, presentation, etc.
-> I am a TA for a Cross-Cultural Psychology course. The students have an assignment in which they must interview someone from a different culture. I've been asked to compile all the demographic information (i.e., where the interviewees are from) and use the data to create interesting and informative visualizations for the class.
+## Goal
+
+> As part of my TA duties for a Cross-Cultural Psychology course, I've been asked to compile all the demographic information from an assingment in which the students interviewed someone from a different culture and use the data to create interesting and informative visualizations for the class.
+
+> All the data for this project was contained on printed out and handwritten demographic forms. Part of this project was figuring out the best way to get that physical data into a dataframe in R.
+
+> The final product of this project was the output document which was shown to the students in class, displaying tables and visualizations for interviewees' age, gender, occupation, academic majors, race/ethnicity, and birth country. Part II (Tables and Visualizations) of this document is close to what the final product looked like (except that, in the final product, all the code chunks were hidden; they are displayed here to show my work). However, the Visualizing Birth Countries section was the section that took the most work, so that section of this document documents the process of getting to the final plot which shows a world map with the birth countries of interviewees highlighted according to to how many interviewees were from that country.
 
 ## Loading tidyverse
 ```{r, message=FALSE}
@@ -11,10 +22,10 @@ library(tidyverse)
 ```
 
 
-## Creating the dataset.
-All the data for the dataset is contained on printed out and handwritten demographic forms. I consulted Claude to see how best to create the dataset. After considering the first option (Approach 1 below), I asked about more efficient ways to create the dataset, eventually landing on Approach 3.
+## I. Creating the Dataset
+All the data for the dataset is contained on printed out and handwritten demographic forms. I consulted Claude.ai to see how best to create the dataset. After considering the first option (Approach 1 below), I asked about more efficient ways to create the dataset, eventually landing on Approach 4.
 
-### Approach 1.
+### Approach 1
 First, create empty dataset.
 ```{r}
 interviewee_demographics <- tibble(
@@ -44,12 +55,12 @@ Check dataset.
 ```{r}
 interviewee_demographics
 ```
-I then asked Claude is there a way more efficient method of data entry in R, saying that, if not, it would seem best to just create the dataset in Excel and then import it into R.
+I then asked Claude if there a way more efficient method of data entry in R, saying that, if not, it would seem best to just create the dataset in Excel and then import it into R.
 
-Claude agreed that using Excel would probably be best, but gave me two other option for quicker data entry in R.
+Claude agreed that using Excel would probably be best, but gave me two other options for quicker data entry in R.
 
-### Approach 2.
-This one doesn't work and makes RStudio freeze. Thanks Claude!
+### Approach 2
+This one doesn't seem to work. Thanks Claude! I didn't spend any time trying to figure out what Claude was shooting for and why this approach didn't work because I was pretty sure I would end up creating the dataset in Excel.
 ```{r eval=FALSE}
 # Create empty dataframe with your structure
 interviewee_demographics <- tibble(
@@ -66,8 +77,8 @@ interviewee_demographics <- tibble(
 interviewee_demographics <- edit(interviewee_demographics)
 ```
 
-### Approach 3.
-This appraoch is much better than the two approaches above, but I still think Excel is easier.
+### Approach 3
+This approach is much better than the two approaches above because it allows me to type out the values of each variable row-by-row, similar to how I would in Excel—but I still think Excel is easier.
 ```{r}
 interviewee_demographics <- tribble(
   ~age, ~gender, ~race, ~profession_or_major, ~birth_country, ~length_res, ~year_moved,
@@ -75,25 +86,113 @@ interviewee_demographics <- tribble(
   30,   "Male",   "Black", "Engineering", "Nigeria", 5, 2020,
   # Add more rows as needed
 )
+interviewee_demographics
 ```
 
-### Approach 4.
+### Approach 4
+Here is the approach I ended up using. I created the dataset in Excel and imported it into R.
 ```{r}
 library(readxl)
 interviewee_demographics <- read_excel("data/interviewee_demographics.xlsx")
 interviewee_demographics
 ```
 
-## Adjusting Variables
+## II. Tables and Visualizations
 
-Changing gender and race variables to factor 
+### Age
 
+#### Grouped into Age Ranges
+
+```{r}
+interviewee_demographics <- interviewee_demographics %>% 
+  mutate(age_range = case_when(
+    age %in% c(18:22) ~ "18-22",
+    age %in% c(23:26) ~ "23-26",
+    age %in% c(26:30) ~ "26-30",
+    age %in% c(30:40) ~ "30-40",
+    age %in% c(40:50) ~ "40-50",
+    age %in% c(50:60) ~ "50-60",
+    age %in% c(61:90) ~ "60+"
+  ))
+interviewee_demographics %>% 
+  count(age_range)
+# Define the order of age ranges
+age_order <- c("18-22", "23-26", "26-30", "30-40", "40-50", "50-60", "60+")
+
+# Plot with ordered factors
+interviewee_demographics %>%
+  mutate(age_range = factor(age_range, levels = age_order)) %>%
+  ggplot(aes(x = age_range)) +
+  geom_bar() +
+  theme_minimal() +
+  labs(title = "Age Distribution of Interviewees",
+       x = "Age Range",
+       y = "Count")
+```
+
+#### All Values
+
+```{r}
+interviewee_demographics %>% 
+  count(age)
+
+interviewee_demographics %>% 
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Ages of Interviewees") +
+  theme_minimal()
+```
+
+### Gender
+
+NA = missing values
 ```{r}
 interviewee_demographics <- interviewee_demographics %>% 
   mutate(
     gender = factor(gender,
                     levels = c(1, 2),
-                    labels = c("male", "female")),
+                    labels = c("male", "female")))
+interviewee_demographics %>% 
+  count(gender)
+
+interviewee_demographics %>% 
+  ggplot(aes(x = gender)) +
+  geom_bar() +
+  theme_minimal()
+```
+
+### Occupation
+
+```{r, print.rows=13}
+interviewee_demographics %>% 
+  count(occupation) %>% 
+  arrange(desc(n))
+
+interviewee_demographics <- interviewee_demographics %>% 
+  mutate(occupations = if_else(occupation == "student", "student", "other"))
+
+interviewee_demographics %>% 
+  ggplot(aes(x = occupations)) +
+  geom_bar() +
+  theme_minimal()
+```
+
+### Students' Majors
+
+```{r}
+interviewee_demographics %>% 
+  filter(occupation == "student") %>% 
+  count(major)
+```
+
+### Race / Ethnicity
+
+Other races included mixed, Turkish, and Middle Eastern.
+Two interviewees selected both Hispanic and White.
+One interviewee selected both Asian and Black or African American.
+```{r}
+interviewee_demographics <- interviewee_demographics %>% 
+  mutate(
     race = factor(race,
                   levels = c(1:8),
                   labels = c("American Indian or Alaskan Native",
@@ -105,12 +204,13 @@ interviewee_demographics <- interviewee_demographics %>%
                             "Prefer not to say",
                             "Other"))
   )
+interviewee_demographics %>% 
+  count(race) %>% 
+  arrange(desc(n))
 ```
 
-## Tables and Visualizations
-
 ### Visualizing Birth Countries
-The most interesting visualization will probably be to depict where in the world the interviewees were born. I found and copied and pasted the code below from a Stack Overflow forum post titled "How to plot a world map using R" (link: https://stackoverflow.com/questions/69625716/how-to-plot-a-world-map-using-r).
+The most interesting visualization will probably be to depict where on the world map the interviewees were born. I found and copied and pasted the code below from a Stack Overflow forum post titled "How to plot a world map using R" (link: https://stackoverflow.com/questions/69625716/how-to-plot-a-world-map-using-r).
 
 ```{r}
 library("ggplot2")
@@ -225,7 +325,7 @@ interviewee_demographics <- interviewee_demographics %>%
                                 birth_country))
 ```
 
-Now, I'll recreate the country_counts dataframe, joi
+Now, I'll recreate the world_with_counts dataframe with the updated country name by joining joining the world and country_counts dataframes, then replot.
 ```{r, fig.width=12, fig.height=8}
 country_counts <- interviewee_demographics %>%
   count(birth_country)
@@ -241,49 +341,32 @@ ggplot(data = world_with_counts) +
   theme_bw() +
   labs(title = "Interviewees by Birth Country")
 ```
+Now, finally, here's the code from the document that I submitted to the professor to show to the class that smooshes all the above steps into one and displays the world map plot together with country counts to make clear which countries are highlighted.
 
-### Age
+```{r, fig.width=12, fig.height=8}
+world <- ne_countries(scale = "medium", returnclass = "sf")
 
-```{r}
-interviewee_demographics %>% 
-  ggplot(aes(x = age)) +
-  geom_histogram(binwidth = 1) +
-  labs(title = "Ages of Interviewees") +
-  theme_minimal()
-
-interviewee_demographics %>% 
-  count(age)
-```
-
-I was instructed, "I would also like to see the ages broken down within a range. Whatever makes sense. Maybe 18-22, 22-26, 26-30, but then put the actual ages of the outliers (like the 88-year-old)."
-
-```{r}
 interviewee_demographics <- interviewee_demographics %>% 
-  mutate(age_range = case_when(
-    age %in% c(18:22) ~ "18-22",
-    age %in% c(23:26) ~ "23-26",
-    age %in% c(26:30) ~ "26-30",
-    age %in% c(30:40) ~ "30-40",
-    age %in% c(40:50) ~ "40-50",
-    age %in% c(50:60) ~ "50-60",
-    age %in% c(61:90) ~ "60+"
-  ))
+  mutate(birth_country = if_else(birth_country == "England", 
+                                "United Kingdom", 
+                                birth_country))
+
+country_counts <- interviewee_demographics %>%
+  count(birth_country)
+
+world_with_counts <- world %>%
+  left_join(country_counts, by = c("admin" = "birth_country"))
+
 interviewee_demographics %>% 
-  count(age_range)
+  count(birth_country) %>% 
+  arrange(desc(n))
+
+ggplot(data = world_with_counts) +
+  geom_sf(aes(fill = factor(n))) +  # Convert to factor here
+  scale_fill_manual(name = "Number of Interviewees",
+                   values = viridis(3),  # Get 3 colors from viridis
+                   na.value = "gray90") +
+  theme_bw() +
+  labs(title = "Interviewees' Birth Countries")
 ```
-
-```{r}
-# Define the order of age ranges
-age_order <- c("18-22", "23-26", "26-30", "30-40", "40-50", "50-60", "60+")
-
-# Plot with ordered factors
-interviewee_demographics %>%
-  mutate(age_range = factor(age_range, levels = age_order)) %>%
-  ggplot(aes(x = age_range)) +
-  geom_bar() +
-  theme_minimal() +
-  labs(title = "Age Distribution of Interviewees",
-       x = "Age Range",
-       y = "Count")
-```
-
+[Note: I don't know why there is so much empty white space at the bottom of this docuement.]
