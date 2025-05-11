@@ -11,7 +11,7 @@
 
 
 
-<title>Portfolio 3</title>
+<title>Portfolio 3 - Exploring Effective Data Visualization</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -378,30 +378,74 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Portfolio 3</h1>
+<h1 class="title toc-ignore">Portfolio 3 - Exploring Effective Data
+Visualization</h1>
 
 </div>
 
 
-<div id="goal" class="section level3">
-<h3>Goal</h3>
+<div id="goal" class="section level2">
+<h2>Goal</h2>
 <blockquote>
-<p>The projects should be numbered consecutively (i.e., in the order in
-which you began them), and should include for each project a description
-of the goal, the product (computer program, hand graph, computer graph,
-etc.), the data, and some interpretation. Reports must be reproducible
-and of high quality in terms of writing, grammar, presentation, etc.</p>
+<p>Context: For the bar graph displayed in in portfolio projects 1 and
+2, I had essentially replicated a graph that I’d previously made in
+SPSS, and I relied on Claude.ai to help improve the graph in places
+where my knowledge of ggplot was limited. I’d not given much though to
+whether the bar graph was the best way to visualize the aspects of the
+data I was trying visualize. Now that I know more about ggplot and more
+about the principles of effective data visualization, I’m going to try
+to apply what I’ve learned by considering alternative ways to visualize
+the data.</p>
 </blockquote>
-<p>I relied heavily on AI for the graph in project 1. Now that I know
-more about ggplot and more about the priniciples of effective data
-visualization, I’m going to try to do the graph on my own and do it
-differently.</p>
-<p>I learned that bar graphs are not always the best way to compare
-group means. Let’s try a boxplot instead</p>
+<blockquote>
+<p>Goal: Practice considering principles of effective data
+visualization.</p>
+</blockquote>
+<blockquote>
+<p>Product: A comparison between a bar graph and a set of box plots.</p>
+</blockquote>
+<blockquote>
+<p>Data: Data contains information about affective political
+polarization grouped by political party identification and experimental
+group (described more below).</p>
+</blockquote>
+</div>
+<div id="loading-packages-and-importing-data" class="section level2">
+<h2>Loading Packages and Importing Data</h2>
 <pre class="r"><code>library(tidyverse)
 library(haven)
-pretest_pol_summary &lt;- suppressMessages(read_csv(&quot;data/pretest_pol_summary.csv&quot;))
-long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)</code></pre>
+long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)
+long_data</code></pre>
+<pre><code>## # A tibble: 400 × 7
+##    participant delib            partyid       target  time     bias polarization
+##          &lt;dbl&gt; &lt;dbl+lbl&gt;        &lt;dbl+lbl&gt;     &lt;dbl+l&gt; &lt;dbl+l&gt; &lt;dbl&gt;        &lt;dbl&gt;
+##  1           1 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  12.0        52.3 
+##  2           1 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  64.3        52.3 
+##  3           1 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  17.0        42.9 
+##  4           1 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  60.0        42.9 
+##  5           2 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  30.0        33.1 
+##  6           2 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  63.1        33.1 
+##  7           2 1 [deliberation] 1 [Democrats] 1 [Dem… 2 [ po…  25.1        30.0 
+##  8           2 1 [deliberation] 1 [Democrats] 2 [Rep… 2 [ po…  55.0        30.0 
+##  9           3 1 [deliberation] 1 [Democrats] 1 [Dem… 1 [pre…  40.8         7.67
+## 10           3 1 [deliberation] 1 [Democrats] 2 [Rep… 1 [pre…  48.5         7.67
+## # ℹ 390 more rows</code></pre>
+</div>
+<div id="bar-plot" class="section level2">
+<h2>Bar Plot</h2>
+<p>First, here is the plot that was in projects 1 and 2. (Note: to
+create this plot I first have to create a dataframe with mean
+polarization scores, which I do below.)</p>
+<pre class="r"><code>pretest_pol_summary &lt;- long_data %&gt;%
+  filter(time == 1) %&gt;%
+  group_by(delib, partyid) %&gt;% 
+  summarise(
+    mean_pol = mean(polarization, na.rm = TRUE),
+    se_pol = sd(polarization, na.rm = TRUE) / sqrt(n()),
+    n = n()
+  )</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;delib&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(partyid))) +
   geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;) +
   geom_errorbar(aes(ymin = mean_pol - se_pol, 
@@ -413,7 +457,16 @@ long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)</code></pre>
   labs(x = &quot;Condition&quot;, y = &quot;Mean Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
   ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
   theme_minimal()</code></pre>
-<p><img src="p03_files/figure-html/barplot-1.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>One improvement to this plot compared to how it was in the previous
+projects is that I selected new colors, shades of red and blue which are
+less harsh than the previous red and blue colors.</p>
+</div>
+<div id="box-plots-1" class="section level2">
+<h2>Box Plots 1</h2>
+<p>I learned that bar graphs are not always the best way to compare
+group means and that boxplots are sometimes preferable. I’ll try that
+now.</p>
 <pre class="r"><code>long_data %&gt;% 
   filter(time == 1) %&gt;% 
   ggplot(aes(x = factor(delib), y = polarization)) +
@@ -426,17 +479,248 @@ long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)</code></pre>
   geom_jitter(width = 0.03, alpha = 0.5) +
   theme_minimal()</code></pre>
 <p><img src="p03_files/figure-html/boxplot1-1.png" width="672" /></p>
+<p>A note on polarization variable:</p>
+<p>Polarization in this study represents affective political
+polarization, and it was obtained by measuring attitudes on a continuum
+from negative to postive towards one’s own political party and towards
+the other political party (i.e., Democrats and Republicans) and taking
+the absolute value of the difference between the two. For example,
+someone who felt neutral towards both parties (a bias score of 50
+towards Democrats and 50 towards Republicans) would have a polarization
+score of 0. Someone who had very positive attitudes towards Democrats
+(say, a bias score of 12 [where scores below 50 represent positive
+attitudes]) and very negative attitudes towards Republicans (say, a bias
+score of 82 [where scores above 50 represent negative attitudes]) would
+have a polarization score of 70.</p>
+<p>Notes on Plot Design:</p>
+<p>Since, at pretest, no deliberation exercise had yet taken place, the
+only difference between the deliberation and control group is that the
+people in the deliberation group were completing the pre-test survey
+while seated at a table with both members of their own political party
+and the other political party while the people in the control group were
+completing the pre-test survey alone. Hence, instead of labeling the
+x-axis as deliberation group and control group, I opted to apply a label
+that more accurately captures the difference between these groups at
+pre-test—whether or not there was any cross-party contact.</p>
+<p>These boxplots aren’t exactly comparable to the barplot above because
+they do not depict the data grouped by political party. This, however, I
+think, may be a benefit because we need only interpret one comparison
+(the pretest polarization of a group which had cross-party contact and
+one which did not have cross-party contact) instead of worrying about
+differences between parties.</p>
+<p>Interpretation:</p>
+<p>These two box plots represent the pre-test polarization scores for
+the deliberation group and the control group.</p>
+<p>They show that there was more pre-test polarization among the group
+which had no cross-party contact and less pre-test polarization among
+the group which did have cross-party contact.</p>
+<p>The box plots also enable us to note other things about the data. For
+example, it seems that the distribution of pre-test polarization scores
+of those who had cross-party contact is tighter, less dispersed, than
+the distribution of pre-test polarization scores of those who did not
+have cross-party contact. Why might that be? Viewing the data in this
+way opens the door to questions which would not have otherwise
+arisen.</p>
+</div>
+<div id="box-plots-2-by-party" class="section level2">
+<h2>Box Plots 2 (by Party)</h2>
+<p>Here is the first version of comparing cross-party contact and no
+cross-party contact groups on their levels of pre-test polarization also
+showing differences between parties.</p>
 <pre class="r"><code>long_data %&gt;% 
   filter(time == 1) %&gt;% 
   ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+    geom_boxplot() +
+    scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+    scale_fill_manual(values = c(&quot;#377eb8&quot;, &quot;#e41a1c&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+    labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+    ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+    theme_minimal()</code></pre>
+<p><img src="p03_files/figure-html/boxplot2-1.png" width="672" /></p>
+<p>Interpretation: Compared to the previous box plots, these box plots
+basically show the same thing plus the fact that there seems to be a
+main effect of party such that Democrats are more polarized than
+Republicans.</p>
+<p>It would be nice to see the data points as we did with the previous
+box plots.</p>
+<div id="adding-data-points-over-grouped-box-plots"
+class="section level3">
+<h3>Adding Data Points Over Grouped Box Plots</h3>
+<p>Here is my first attempt.</p>
+<pre class="r"><code>long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
   geom_boxplot() +
+  # Change the width parameter and add position_dodge
+  geom_jitter(width = 0.2, alpha = 0.5) +
   scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
-  #I used colorbrewer2.0 to improve the colors
-  scale_fill_manual(values = c(&quot;#377eb8&quot;, &quot;#e41a1c&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
   labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
   ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
   theme_minimal()</code></pre>
-<p><img src="p03_files/figure-html/boxplot2-1.png" width="672" /></p>
+<p><img src="p03_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>You can see that this is not quite what I had in mind. I want the
+data points to also be grouped by party. I wasn’t sure how to proceed,
+so I asked Claude.ai for help.</p>
+<p>Claude gave the code below which did not work because, within
+geom_jitter(), you can’t have both width and position_dodge with a
+width.</p>
+<pre class="r"><code>long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot() +
+  # Change the width parameter and add position_dodge
+  geom_jitter(width = 0.2, alpha = 0.5, 
+              aes(color = factor(partyid)),  # Add color aesthetic
+              position = position_dodge(width = 0.75)) +  # Add dodge positioning
+  scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  scale_color_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), guide = &quot;none&quot;) +  # Match colors and hide legend
+  labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p>My attempt to fix it was to just delete the first width in
+geom_jitter.</p>
+<pre class="r"><code>long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot() +
+  # Change the width parameter and add position_dodge
+  geom_jitter(alpha = 0.5, 
+              aes(color = factor(partyid)),  # Add color aesthetic
+              position = position_dodge(width = 0.75)) +  # Add dodge positioning
+  scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  scale_color_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), guide = &quot;none&quot;) +  # Match colors and hide legend
+  labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="p03_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>So, now the points are aligned with their boxplots, but they aren’t
+jittered—which defeats the point of using geom_jitter().</p>
+<p>I again asked Claude for help, and he recommended the perfect
+solution:</p>
+<pre class="r"><code>long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot() +
+  # Use position_jitterdodge instead of combining width and position_dodge
+  geom_point(alpha = 0.5,
+             aes(color = factor(partyid)),  # Add color aesthetic
+             position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75)) +  # Combined solution
+  scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  scale_color_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), guide = &quot;none&quot;) +  # Match colors and hide legend
+  labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="p03_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Now, the points are grouped by party, aligned with the correct box
+plots, and jittered—but they are blending in with the boxplot.</p>
+<p>Here is Claude’s solution:</p>
+<pre class="r"><code>long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot(alpha = 0.7) +  # Slightly reduce box plot opacity
+  geom_point(alpha = 0.7,
+             aes(color = factor(partyid)),
+             position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75),
+             size = 2,  # Increase point size
+             shape = 21,  # Filled circle with border
+             stroke = 1.2,  # Thicker border
+             fill = &quot;white&quot;) +  # White fill for contrast
+  scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  scale_color_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), guide = &quot;none&quot;) +  # Match colors for point borders
+  labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="p03_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>I wasn’t happy with this solution, so I asked Claude to just make the
+points black.</p>
+<pre class="r"><code>long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot() +
+  geom_point(color = &quot;black&quot;,  # Make all points black
+             alpha = 0.6,      # Slight transparency
+             position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75)) +
+  scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="p03_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Alright. Now, I’ve satisfactorily created the plot I had in mind.</p>
+<p>It seems to me to show the same general story as the first set of box
+plots grouped by party did, but now we have essentially the full data in
+front of our eyes. Neat.</p>
+</div>
+</div>
+<div id="comparison" class="section level2">
+<h2>Comparison</h2>
+<p>Let’s compare these box plots to the original bar plot and consdier
+pros and cons.</p>
+<p>Claude helped me figure out how to get the plots to display
+side-by-side for easier comparison.</p>
+<pre class="r"><code># Create bar plot
+bar_plot &lt;- ggplot(pretest_pol_summary, aes(x = factor(delib), y = mean_pol, fill = factor(partyid))) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;) +
+  geom_errorbar(aes(ymin = mean_pol - se_pol,
+                   ymax = mean_pol + se_pol),
+                position = position_dodge(width = 1)) +
+  scale_x_discrete(labels = c(&quot;Control&quot;, &quot;Deliberation&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  labs(x = &quot;Condition&quot;, y = &quot;Mean Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()
+
+# Create box plot
+box_plot &lt;- long_data %&gt;%
+  filter(time == 1) %&gt;%
+  ggplot(aes(x = factor(delib), y = polarization, fill = factor(partyid))) +
+  geom_boxplot() +
+  geom_point(color = &quot;black&quot;,
+             alpha = 0.6,
+             position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75)) +
+  scale_x_discrete(labels = c(&quot;No&quot;, &quot;Yes&quot;)) +
+  scale_fill_manual(values = c(&quot;#3778bf&quot;, &quot;#fc4f4f&quot;), labels = c(&quot;Democrat&quot;, &quot;Republican&quot;)) +
+  labs(x = &quot;Cross-Party Contact&quot;, y = &quot;Pre-test Polarization&quot;, fill = &quot;Party ID&quot;) +
+  ggtitle(&quot;Effect of Minimal Intergroup Contact on Affective Partisan Polarization&quot;) +
+  theme_minimal()
+
+# Display side-by-side using gridExtra
+library(gridExtra)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;gridExtra&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre class="r"><code>grid.arrange(bar_plot, box_plot, ncol = 2)</code></pre>
+<p><img src="p03_files/figure-html/unnamed-chunk-8-1.png" width="1152" /></p>
+<p>(Not sure why the error bars are ugly now, but oh well.)</p>
+<p>The box plots do give lots of information about the data. You are
+able to get a better idea of the distribution, and, with the points
+added in, that’s even more the case.</p>
+<p>All things considered, however, I think I probably still prefer the
+bar plot.</p>
+<p>The question we are setting out to address with plots is, Is there a
+difference between pre-test polarization between the deliberation and
+control groups, and are there differences between the two parties?</p>
+<p>Both plots answer that question. The bar plot just answers it more
+simply, and the box plots answer it with lots more high resolution
+information. In this case, however, that high resolution information
+isn’t all that pertinent to the question at hand.</p>
+<p>Therefore, one takeaway from this exercise is probably that box plots
+do indeed contain more information than bar plots, but the amount of
+information you display in a plot should be appropriate for the question
+that you are addressing.</p>
+<div id="the-end" class="section level3">
+<h3>The end</h3>
+<p>The stuff below can be ignored. It’s where I began to try to make
+other plots to answer questions about this dataset, but I didn’t get
+very far (and the plots are pretty bad). It will perhaps be a project
+for another time.</p>
 <pre class="r"><code>long_data %&gt;% 
   filter(partyid == 1, delib == 1, target == 2) %&gt;% 
   ggplot(aes(x = time, y = bias)) +
@@ -451,6 +735,7 @@ long_data &lt;- read_sav(&quot;data/LongData copy.sav&quot;)</code></pre>
   geom_line(y = 50) +
   labs(y = &quot;Negative Attitudes&quot;, title = &quot;Democrats Attitudes Towards Democrats Before &amp; After Deliberation Exercise&quot;, caption = &quot;50 = is neutral attitude, &quot;)</code></pre>
 <p><img src="p03_files/figure-html/lineplot1-2.png" width="672" /></p>
+</div>
 </div>
 
 
