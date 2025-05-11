@@ -7,7 +7,7 @@ output:
     toc_float: true
     code_folding: show
 ---
-## Goal
+# Goal
 
 > The goal of this project is to demonstrate the usefullness of R in conducting and displaying the results of data analysis. The products of portfolio projects 5 and 6 contributed to this project. 
 
